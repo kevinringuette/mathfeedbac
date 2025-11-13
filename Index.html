@@ -466,15 +466,32 @@
   </div>
 
   <script>
-    const CONFIG = {
-      AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.d93cc816ba0e0dc0c22bbe5eaada139d84f864256b401446d1c2726da1247b4f',
-      AIRTABLE_BASE_ID: 'appTwYDVvnYPB8D2N',
+    const DEFAULT_CONFIG = {
+      AIRTABLE_API_KEY: 'YOUR_AIRTABLE_API_KEY',
+      AIRTABLE_BASE_ID: 'YOUR_AIRTABLE_BASE_ID',
       TABLES: {
-        STUDENTS: 'tblFr5ExAzNUYeLFU',
-        PROBLEMS: 'tblk5aImbw2a8mAsL',
-        FEEDBACK: 'tblk5aImbw2a8mAsL' // Update with a dedicated feedback table ID if available.
+        STUDENTS: 'YOUR_STUDENTS_TABLE_ID',
+        PROBLEMS: 'YOUR_PROBLEMS_TABLE_ID',
+        FEEDBACK: 'YOUR_FEEDBACK_TABLE_ID'
       }
     };
+
+    const CONFIG = Object.freeze({
+      ...DEFAULT_CONFIG,
+      ...(window.AIRTABLE_CONFIG || {}),
+      TABLES: {
+        ...DEFAULT_CONFIG.TABLES,
+        ...((window.AIRTABLE_CONFIG && window.AIRTABLE_CONFIG.TABLES) || {})
+      }
+    });
+
+    const REQUIRED_CONFIG_KEYS = [
+      ['AIRTABLE_API_KEY', CONFIG.AIRTABLE_API_KEY],
+      ['AIRTABLE_BASE_ID', CONFIG.AIRTABLE_BASE_ID],
+      ['TABLES.STUDENTS', CONFIG.TABLES.STUDENTS],
+      ['TABLES.PROBLEMS', CONFIG.TABLES.PROBLEMS],
+      ['TABLES.FEEDBACK', CONFIG.TABLES.FEEDBACK]
+    ];
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -533,7 +550,36 @@
 
     document.addEventListener('DOMContentLoaded', initialiseApp);
 
+    function getMissingConfigKeys() {
+      return REQUIRED_CONFIG_KEYS.filter(([, value]) => {
+        if (typeof value !== 'string') return true;
+        const trimmed = value.trim();
+        return !trimmed || /YOUR_[A-Z_]+/.test(trimmed) || /REPLACE_[A-Z_]+/.test(trimmed);
+      }).map(([key]) => key);
+    }
+
+    function disableAppForConfigurationIssue(message) {
+      setLoading(false);
+      showStatus(message, 'error');
+      [nextToScreen2Button, nextToScreen3Button, submitButton, restartButton].forEach((element) => {
+        if (element) {
+          element.disabled = true;
+        }
+      });
+      unitSelect.disabled = true;
+      lessonSelect.disabled = true;
+      studentSearchInput.disabled = true;
+    }
+
     async function initialiseApp() {
+      const missingConfig = getMissingConfigKeys();
+      if (missingConfig.length) {
+        disableAppForConfigurationIssue(
+          `Set your Airtable credentials before using this tool. Missing: ${missingConfig.join(', ')}`
+        );
+        return;
+      }
+
       try {
         setLoading(true, 'Loading roster and assignments...');
         await Promise.all([loadStudents(), loadProblems()]);
