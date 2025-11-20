@@ -263,6 +263,24 @@
       color: var(--primary-dark);
     }
 
+    .problem-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .concept-pill {
+      background: rgba(60, 110, 113, 0.1);
+      color: var(--primary-dark);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
     .problem-description {
       color: var(--muted);
       margin: 0;
@@ -539,10 +557,12 @@
       PROBLEM_CONCEPT: ['Math Concept', 'Concept'],
       FEEDBACK_STUDENT_LINK: 'Student',
       FEEDBACK_STUDENT_NAME: 'Student Name',
-      FEEDBACK_UNIT: 'Unit',
-      FEEDBACK_LESSON: 'Lesson',
-      FEEDBACK_PROBLEM_TEXT: 'Problem',
-      FEEDBACK_PROBLEM_LINK: 'Problem Record',
+      FEEDBACK_UNIT: ['Unit', 'Unit Number'],
+      FEEDBACK_LESSON: ['Lesson', 'Lesson Number'],
+      FEEDBACK_QUESTION_NUMBER: ['Question Number', 'Problem Number'],
+      FEEDBACK_QUESTION_TEXT: ['Question Text', 'Problem Text', 'Problem'],
+      FEEDBACK_MATH_CONCEPT: ['Math Concept', 'Concept'],
+      FEEDBACK_PROBLEM_LINK: ['Problem Record'],
       FEEDBACK_CONFIDENCE: 'Confidence',
       FEEDBACK_SUBMITTED_AT: 'Submitted At'
     };
@@ -803,6 +823,8 @@
           }
           if (title) {
             labelPieces.push(title);
+          } else if (primaryDescription) {
+            labelPieces.push(primaryDescription);
           } else if (concept) {
             labelPieces.push(concept);
           }
@@ -832,6 +854,10 @@
             label,
             description,
             identifier,
+            questionText: primaryDescription,
+            mathConcept: concept,
+            unit,
+            lesson,
             fields: record.fields
           });
         });
@@ -890,7 +916,11 @@
             id: problem.id,
             label: problem.label || `Problem ${index + 1}`,
             description: problem.description,
-            identifier: problem.identifier
+            identifier: problem.identifier,
+            questionText: problem.description,
+            mathConcept: problem.concept,
+            unit: assignment.unit,
+            lesson: assignment.lesson
           }))
         );
       });
@@ -998,6 +1028,17 @@
       });
 
       return matches;
+    }
+
+    function setFieldValues(target, candidates, value) {
+      if (value == null || value === '') return;
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      list
+        .map((candidate) => String(candidate || '').trim())
+        .filter(Boolean)
+        .forEach((key) => {
+          target[key] = value;
+        });
     }
 
     function renderStudents(filter = '') {
@@ -1116,10 +1157,32 @@
         legend.textContent = problem.label;
         card.appendChild(legend);
 
+        const meta = document.createElement('div');
+        meta.className = 'problem-meta';
+        if (problem.identifier) {
+          const qBadge = document.createElement('span');
+          qBadge.textContent = `Question ${problem.identifier}`;
+          meta.appendChild(qBadge);
+        }
+        if (problem.mathConcept) {
+          const concept = document.createElement('span');
+          concept.className = 'concept-pill';
+          concept.textContent = problem.mathConcept;
+          meta.appendChild(concept);
+        }
+        if (meta.childNodes.length) {
+          card.appendChild(meta);
+        }
+
         if (problem.description) {
           const description = document.createElement('p');
           description.className = 'problem-description';
           description.textContent = problem.description;
+          card.appendChild(description);
+        } else if (problem.questionText) {
+          const description = document.createElement('p');
+          description.className = 'problem-description';
+          description.textContent = problem.questionText;
           card.appendChild(description);
         }
 
@@ -1209,30 +1272,16 @@
 
     function buildFeedbackFields(problem) {
       const fields = {};
-      if (FIELD_NAMES.FEEDBACK_STUDENT_LINK) {
-        fields[FIELD_NAMES.FEEDBACK_STUDENT_LINK] = [state.selectedStudentId];
-      }
-      if (FIELD_NAMES.FEEDBACK_STUDENT_NAME) {
-        fields[FIELD_NAMES.FEEDBACK_STUDENT_NAME] = state.selectedStudentName;
-      }
-      if (FIELD_NAMES.FEEDBACK_UNIT) {
-        fields[FIELD_NAMES.FEEDBACK_UNIT] = state.selectedUnit;
-      }
-      if (FIELD_NAMES.FEEDBACK_LESSON) {
-        fields[FIELD_NAMES.FEEDBACK_LESSON] = state.selectedLesson;
-      }
-      if (FIELD_NAMES.FEEDBACK_PROBLEM_TEXT) {
-        fields[FIELD_NAMES.FEEDBACK_PROBLEM_TEXT] = problem.label;
-      }
-      if (FIELD_NAMES.FEEDBACK_PROBLEM_LINK) {
-        fields[FIELD_NAMES.FEEDBACK_PROBLEM_LINK] = [problem.id];
-      }
-      if (FIELD_NAMES.FEEDBACK_CONFIDENCE) {
-        fields[FIELD_NAMES.FEEDBACK_CONFIDENCE] = state.responses[problem.id];
-      }
-      if (FIELD_NAMES.FEEDBACK_SUBMITTED_AT) {
-        fields[FIELD_NAMES.FEEDBACK_SUBMITTED_AT] = new Date().toISOString();
-      }
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_STUDENT_LINK, [state.selectedStudentId]);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_STUDENT_NAME, state.selectedStudentName);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_UNIT, state.selectedUnit);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_LESSON, state.selectedLesson);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_QUESTION_NUMBER, problem.identifier || problem.label);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_QUESTION_TEXT, problem.questionText || problem.label);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_MATH_CONCEPT, problem.mathConcept);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_PROBLEM_LINK, [problem.id]);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_CONFIDENCE, state.responses[problem.id]);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_SUBMITTED_AT, new Date().toISOString());
       return fields;
     }
 
