@@ -447,6 +447,12 @@
                 <option value="">Select lesson</option>
               </select>
             </div>
+            <div>
+              <label for="assignment-select">Assignment</label>
+              <select id="assignment-select" disabled>
+                <option value="">Select assignment</option>
+              </select>
+            </div>
           </div>
           <div id="selection-summary"></div>
           <div class="controls">
@@ -511,8 +517,10 @@
 
     const SAMPLE_ASSIGNMENTS = [
       {
-        unit: 'Unit 1 • Linear Relationships',
-        lesson: 'Lesson 1.1 • Graphing from Tables',
+        unit: '1',
+        unitTitle: 'Linear Relationships',
+        lesson: '1.1',
+        assignment: '1.1-Graphing from Tables',
         problems: [
           {
             id: 'sample-problem-1',
@@ -528,8 +536,10 @@
         ]
       },
       {
-        unit: 'Unit 2 • Systems of Equations',
-        lesson: 'Lesson 2.3 • Elimination Method',
+        unit: '2',
+        unitTitle: 'Systems of Equations',
+        lesson: '2.3',
+        assignment: '2.3-Elimination Method',
         problems: [
           {
             id: 'sample-problem-3',
@@ -548,17 +558,27 @@
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
-      UNIT: ['Unit', 'Unit Name', 'Section Unit', 'Unit Number'],
-      LESSON: ['Lesson', 'Lesson Name', 'Section Lesson', 'Lesson Number'],
+      UNIT_NUMBER: ['Unit Number', 'fldd4q2agTJuAVVhz', 'Unit'],
+      UNIT_TITLE: ['Unit Title', 'fldgEoYzwofLCyqDX', 'Unit Name'],
+      LESSON: ['Lesson Number', 'fldLBfnSmtT73kksL', 'Lesson', 'Lesson Name', 'Section Lesson'],
+      ASSIGNMENT: ['Assignments', 'Assignment Name', 'Assignment', 'fldweYYDmL5L9ZX6h', 'fldRZDWHGVMLge7sK'],
       PROBLEM_TITLE: ['Problem', 'Problem Name', 'Title', 'Name'],
-      PROBLEM_IDENTIFIER: ['Question Number', 'Problem Number', 'Prompt ID'],
-      PROBLEM_DESCRIPTION: ['Prompt', 'Question', 'Description', 'Problem Text', 'Question Text'],
-      PROBLEM_DETAILS: ['Reasoning', 'Choices', 'Rubric Items'],
-      PROBLEM_CONCEPT: ['Math Concept', 'Concept'],
+      PROBLEM_IDENTIFIER: ['Question Number', 'Problem Number', 'Prompt ID', 'fldNULf9EHRiaMW6U'],
+      PROBLEM_DESCRIPTION: [
+        'Prompt',
+        'Question',
+        'Description',
+        'Problem Text',
+        'Question Text',
+        'fldkHsVoFXUAGZtVV'
+      ],
+      PROBLEM_DETAILS: ['Reasoning', 'Choices', 'Rubric Items', 'fld63vTQBF2zuHMcZ', 'fldUL0fnXtqmPKgnP'],
+      PROBLEM_CONCEPT: ['Math Concept', 'Concept', 'fldRTh5ezuoJbTOKo'],
       FEEDBACK_STUDENT_LINK: 'Student',
       FEEDBACK_STUDENT_NAME: 'Student Name',
       FEEDBACK_UNIT: ['Unit', 'Unit Number'],
       FEEDBACK_LESSON: ['Lesson', 'Lesson Number'],
+      FEEDBACK_ASSIGNMENT: ['Assignment', 'Assignments', 'Assignment Name'],
       FEEDBACK_QUESTION_NUMBER: ['Question Number', 'Problem Number'],
       FEEDBACK_QUESTION_TEXT: ['Question Text', 'Problem Text', 'Problem'],
       FEEDBACK_MATH_CONCEPT: ['Math Concept', 'Concept'],
@@ -579,15 +599,21 @@
       studentLookup: new Map(),
       units: [],
       lessonsByUnit: new Map(),
+      assignmentsByLesson: new Map(),
       problemsByKey: new Map(),
       selectedStudentId: null,
       selectedStudentName: '',
       selectedUnit: '',
+      selectedUnitLabel: '',
       selectedLesson: '',
+      selectedAssignment: '',
       responses: {}
     };
 
     const naturalSort = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+    const makeLessonKey = (unit, lesson) => `${unit}|||${lesson}`;
+    const makeProblemKey = (unit, lesson, assignment) => `${unit}|||${lesson}|||${assignment || ''}`;
 
     const screens = Array.from(document.querySelectorAll('.screen'));
     const studentSearchInput = document.getElementById('student-search');
@@ -599,6 +625,7 @@
     const submitButton = document.getElementById('submit-feedback');
     const unitSelect = document.getElementById('unit-select');
     const lessonSelect = document.getElementById('lesson-select');
+    const assignmentSelect = document.getElementById('assignment-select');
     const selectionSummary = document.getElementById('selection-summary');
     const problemsContainer = document.getElementById('problems-container');
     const problemStatus = document.getElementById('problem-status');
@@ -631,6 +658,7 @@
       });
       unitSelect.disabled = true;
       lessonSelect.disabled = true;
+      assignmentSelect.disabled = true;
       studentSearchInput.disabled = true;
     }
 
@@ -681,14 +709,25 @@
 
       unitSelect.addEventListener('change', (event) => {
         state.selectedUnit = event.target.value;
+        state.selectedUnitLabel = event.target.selectedOptions[0]?.textContent || '';
         state.selectedLesson = '';
+        state.selectedAssignment = '';
         populateLessons();
+        populateAssignments();
         updateSummary();
         checkScreen2Ready();
       });
 
       lessonSelect.addEventListener('change', (event) => {
         state.selectedLesson = event.target.value;
+        state.selectedAssignment = '';
+        populateAssignments();
+        updateSummary();
+        checkScreen2Ready();
+      });
+
+      assignmentSelect.addEventListener('change', (event) => {
+        state.selectedAssignment = event.target.value;
         updateSummary();
         checkScreen2Ready();
       });
@@ -788,25 +827,42 @@
       try {
         const records = await airtableFetch(CONFIG.TABLES.PROBLEMS, { pageSize: 100 });
         const lessonsByUnit = new Map();
+        const assignmentsByLesson = new Map();
         const problemsByKey = new Map();
-        const units = new Set();
+        const units = new Map();
         let skippedRecords = 0;
 
         records.forEach((record) => {
-          const unit = extractFirstAvailable(record.fields, FIELD_NAMES.UNIT);
-          const lesson = extractFirstAvailable(record.fields, FIELD_NAMES.LESSON);
-          if (!unit || !lesson) {
+          const unitRaw = extractFirstAvailable(record.fields, FIELD_NAMES.UNIT_NUMBER);
+          const lessonRaw = extractFirstAvailable(record.fields, FIELD_NAMES.LESSON);
+          const assignmentRaw = extractFirstAvailable(record.fields, FIELD_NAMES.ASSIGNMENT);
+          if (!unitRaw || !lessonRaw || !assignmentRaw) {
             skippedRecords += 1;
             return;
           }
 
-          units.add(unit);
+          const unit = String(unitRaw).trim();
+          const lesson = String(lessonRaw).trim();
+          const assignment = String(assignmentRaw).trim();
+          const unitTitle = extractFirstAvailable(record.fields, FIELD_NAMES.UNIT_TITLE);
+          const unitLabel = unitTitle ? `Unit ${unit} • ${unitTitle}` : `Unit ${unit}`;
+
+          if (!units.has(unit)) {
+            units.set(unit, { value: unit, label: unitLabel, title: unitTitle || '' });
+          }
+
           if (!lessonsByUnit.has(unit)) {
             lessonsByUnit.set(unit, new Set());
           }
           lessonsByUnit.get(unit).add(lesson);
 
-          const key = `${unit}|||${lesson}`;
+          const lessonKey = makeLessonKey(unit, lesson);
+          if (!assignmentsByLesson.has(lessonKey)) {
+            assignmentsByLesson.set(lessonKey, new Set());
+          }
+          assignmentsByLesson.get(lessonKey).add(assignment);
+
+          const key = makeProblemKey(unit, lesson, assignment);
           if (!problemsByKey.has(key)) {
             problemsByKey.set(key, []);
           }
@@ -858,15 +914,22 @@
             mathConcept: concept,
             unit,
             lesson,
+            assignment,
             fields: record.fields
           });
         });
 
         problemsByKey.forEach((problems) => sortProblemEntries(problems));
 
-        state.units = Array.from(units).sort((a, b) => naturalSort.compare(a, b));
+        state.units = Array.from(units.values()).sort((a, b) => naturalSort.compare(a.value, b.value));
         state.lessonsByUnit = new Map(
           Array.from(lessonsByUnit.entries()).map(([unit, lessons]) => [unit, Array.from(lessons).sort((a, b) => naturalSort.compare(a, b))])
+        );
+        state.assignmentsByLesson = new Map(
+          Array.from(assignmentsByLesson.entries()).map(([lessonKey, assignments]) => [
+            lessonKey,
+            Array.from(assignments).sort((a, b) => naturalSort.compare(a, b))
+          ])
         );
         state.problemsByKey = problemsByKey;
 
@@ -881,7 +944,7 @@
 
         if (skippedRecords > 0) {
           showStatus(
-            `Skipped ${skippedRecords} Airtable record${skippedRecords === 1 ? '' : 's'} that were missing a unit or lesson.`,
+            `Skipped ${skippedRecords} Airtable record${skippedRecords === 1 ? '' : 's'} that were missing a unit, lesson, or assignment.`,
             'info',
             { append: true }
           );
@@ -898,18 +961,32 @@
 
     function useSampleProblems(message) {
       const lessonsByUnit = new Map();
+      const assignmentsByLesson = new Map();
       const problemsByKey = new Map();
 
-      const unitSet = new Set();
+      const unitMap = new Map();
 
       SAMPLE_ASSIGNMENTS.forEach((assignment) => {
-        unitSet.add(assignment.unit);
-        if (!lessonsByUnit.has(assignment.unit)) {
-          lessonsByUnit.set(assignment.unit, new Set());
-        }
-        lessonsByUnit.get(assignment.unit).add(assignment.lesson);
+        const unit = String(assignment.unit);
+        const lesson = String(assignment.lesson);
+        const assignmentName = String(assignment.assignment || assignment.lesson || assignment.unit);
+        const unitLabel = assignment.unitTitle ? `Unit ${unit} • ${assignment.unitTitle}` : `Unit ${unit}`;
 
-        const key = `${assignment.unit}|||${assignment.lesson}`;
+        if (!unitMap.has(unit)) {
+          unitMap.set(unit, { value: unit, label: unitLabel, title: assignment.unitTitle || '' });
+        }
+        if (!lessonsByUnit.has(unit)) {
+          lessonsByUnit.set(unit, new Set());
+        }
+        lessonsByUnit.get(unit).add(lesson);
+
+        const lessonKey = makeLessonKey(unit, lesson);
+        if (!assignmentsByLesson.has(lessonKey)) {
+          assignmentsByLesson.set(lessonKey, new Set());
+        }
+        assignmentsByLesson.get(lessonKey).add(assignmentName);
+
+        const key = makeProblemKey(unit, lesson, assignmentName);
         problemsByKey.set(
           key,
           assignment.problems.map((problem, index) => ({
@@ -919,17 +996,24 @@
             identifier: problem.identifier,
             questionText: problem.description,
             mathConcept: problem.concept,
-            unit: assignment.unit,
-            lesson: assignment.lesson
+            unit,
+            lesson,
+            assignment: assignmentName
           }))
         );
       });
 
       problemsByKey.forEach((list) => sortProblemEntries(list));
 
-      state.units = Array.from(unitSet).sort((a, b) => naturalSort.compare(a, b));
+      state.units = Array.from(unitMap.values()).sort((a, b) => naturalSort.compare(a.value, b.value));
       state.lessonsByUnit = new Map(
         Array.from(lessonsByUnit.entries()).map(([unit, lessons]) => [unit, Array.from(lessons).sort((a, b) => naturalSort.compare(a, b))])
+      );
+      state.assignmentsByLesson = new Map(
+        Array.from(assignmentsByLesson.entries()).map(([lessonKey, assignments]) => [
+          lessonKey,
+          Array.from(assignments).sort((a, b) => naturalSort.compare(a, b))
+        ])
       );
       state.problemsByKey = problemsByKey;
       showStatus(message, 'info', { append: true });
@@ -1080,8 +1164,8 @@
       unitSelect.innerHTML = '<option value="">Select unit</option>';
       state.units.forEach((unit) => {
         const option = document.createElement('option');
-        option.value = unit;
-        option.textContent = unit;
+        option.value = unit.value;
+        option.textContent = unit.label;
         unitSelect.appendChild(option);
       });
       unitSelect.disabled = state.units.length === 0;
@@ -1104,16 +1188,37 @@
       lessonSelect.disabled = lessons.length === 0;
     }
 
+    function populateAssignments() {
+      assignmentSelect.innerHTML = '<option value="">Select assignment</option>';
+      if (!state.selectedUnit || !state.selectedLesson) {
+        assignmentSelect.disabled = true;
+        return;
+      }
+
+      const assignments =
+        state.assignmentsByLesson.get(makeLessonKey(state.selectedUnit, state.selectedLesson)) || [];
+      assignments.forEach((assignment) => {
+        const option = document.createElement('option');
+        option.value = assignment;
+        option.textContent = assignment;
+        assignmentSelect.appendChild(option);
+      });
+      assignmentSelect.disabled = assignments.length === 0;
+    }
+
     function updateSummary() {
       selectionSummary.innerHTML = '';
       if (state.selectedStudentName) {
         selectionSummary.appendChild(createSummaryChip('Student', state.selectedStudentName));
       }
       if (state.selectedUnit) {
-        selectionSummary.appendChild(createSummaryChip('Unit', state.selectedUnit));
+        selectionSummary.appendChild(createSummaryChip('Unit', state.selectedUnitLabel || state.selectedUnit));
       }
       if (state.selectedLesson) {
         selectionSummary.appendChild(createSummaryChip('Lesson', state.selectedLesson));
+      }
+      if (state.selectedAssignment) {
+        selectionSummary.appendChild(createSummaryChip('Assignment', state.selectedAssignment));
       }
     }
 
@@ -1125,14 +1230,14 @@
     }
 
     function checkScreen2Ready() {
-      const ready = Boolean(state.selectedUnit && state.selectedLesson);
+      const ready = Boolean(state.selectedUnit && state.selectedLesson && state.selectedAssignment);
       nextToScreen3Button.disabled = !ready;
     }
 
     function renderProblems() {
       problemsContainer.innerHTML = '';
       problemStatus.hidden = true;
-      const key = `${state.selectedUnit}|||${state.selectedLesson}`;
+      const key = makeProblemKey(state.selectedUnit, state.selectedLesson, state.selectedAssignment);
       const problems = state.problemsByKey.get(key) || [];
 
       if (!problems.length) {
@@ -1226,7 +1331,7 @@
     }
 
     async function handleSubmit() {
-      const key = `${state.selectedUnit}|||${state.selectedLesson}`;
+      const key = makeProblemKey(state.selectedUnit, state.selectedLesson, state.selectedAssignment);
       const problems = state.problemsByKey.get(key) || [];
       const unanswered = problems.filter((problem) => !state.responses[problem.id]);
 
@@ -1276,6 +1381,7 @@
       setFieldValues(fields, FIELD_NAMES.FEEDBACK_STUDENT_NAME, state.selectedStudentName);
       setFieldValues(fields, FIELD_NAMES.FEEDBACK_UNIT, state.selectedUnit);
       setFieldValues(fields, FIELD_NAMES.FEEDBACK_LESSON, state.selectedLesson);
+      setFieldValues(fields, FIELD_NAMES.FEEDBACK_ASSIGNMENT, state.selectedAssignment);
       setFieldValues(fields, FIELD_NAMES.FEEDBACK_QUESTION_NUMBER, problem.identifier || problem.label);
       setFieldValues(fields, FIELD_NAMES.FEEDBACK_QUESTION_TEXT, problem.questionText || problem.label);
       setFieldValues(fields, FIELD_NAMES.FEEDBACK_MATH_CONCEPT, problem.mathConcept);
@@ -1352,11 +1458,14 @@
 
     function resetApp() {
       state.selectedUnit = '';
+      state.selectedUnitLabel = '';
       state.selectedLesson = '';
+      state.selectedAssignment = '';
       state.responses = {};
       unitSelect.value = '';
       lessonSelect.value = '';
       populateLessons();
+      populateAssignments();
       checkScreen2Ready();
 
       state.selectedStudentId = null;
