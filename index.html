@@ -561,7 +561,7 @@
       UNIT_NUMBER: ['Unit Number', 'fldd4q2agTJuAVVhz', 'Unit'],
       UNIT_TITLE: ['Unit Title', 'fldgEoYzwofLCyqDX', 'Unit Name'],
       LESSON: ['Lesson Number', 'fldLBfnSmtT73kksL', 'Lesson', 'Lesson Name', 'Section Lesson'],
-      ASSIGNMENT: ['Assignments', 'Assignment Name', 'Assignment', 'fldweYYDmL5L9ZX6h', 'fldRZDWHGVMLge7sK'],
+      ASSIGNMENT: ['Assignment Name', 'fldRZDWHGVMLge7sK', 'Assignments', 'Assignment', 'fldweYYDmL5L9ZX6h'],
       PROBLEM_TITLE: ['Problem', 'Problem Name', 'Title', 'Name'],
       PROBLEM_IDENTIFIER: ['Question Number', 'Problem Number', 'Prompt ID', 'fldNULf9EHRiaMW6U'],
       PROBLEM_DESCRIPTION: [
@@ -826,6 +826,7 @@
 
       try {
         const records = await airtableFetch(CONFIG.TABLES.PROBLEMS, { pageSize: 100 });
+        console.log('Raw Airtable records:', records);
         const lessonsByUnit = new Map();
         const assignmentsByLesson = new Map();
         const problemsByKey = new Map();
@@ -833,10 +834,14 @@
         let skippedRecords = 0;
 
         records.forEach((record) => {
+          console.log('Processing record:', record.id, record.fields);
           const unitRaw = extractFirstAvailable(record.fields, FIELD_NAMES.UNIT_NUMBER);
           const lessonRaw = extractFirstAvailable(record.fields, FIELD_NAMES.LESSON);
           const assignmentRaw = extractFirstAvailable(record.fields, FIELD_NAMES.ASSIGNMENT);
+          console.log(`Extracted: unit=${unitRaw}, lesson=${lessonRaw}, assignment=${assignmentRaw}`);
+          
           if (!unitRaw || !lessonRaw || !assignmentRaw) {
+            console.log('Skipping record due to missing fields');
             skippedRecords += 1;
             return;
           }
@@ -846,6 +851,8 @@
           const assignment = String(assignmentRaw).trim();
           const unitTitle = extractFirstAvailable(record.fields, FIELD_NAMES.UNIT_TITLE);
           const unitLabel = unitTitle ? `Unit ${unit} • ${unitTitle}` : `Unit ${unit}`;
+
+          console.log(`Processed: unit=${unit}, lesson=${lesson}, assignment=${assignment}`);
 
           if (!units.has(unit)) {
             units.set(unit, { value: unit, label: unitLabel, title: unitTitle || '' });
@@ -920,6 +927,10 @@
         });
 
         problemsByKey.forEach((problems) => sortProblemEntries(problems));
+
+        console.log('Final state - units:', Array.from(units.keys()));
+        console.log('Final state - lessonsByUnit:', Array.from(lessonsByUnit.entries()));
+        console.log('Final state - assignmentsByLesson:', Array.from(assignmentsByLesson.entries()));
 
         state.units = Array.from(units.values()).sort((a, b) => naturalSort.compare(a.value, b.value));
         state.lessonsByUnit = new Map(
