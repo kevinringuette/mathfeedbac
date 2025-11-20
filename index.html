@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homework Problem Database Viewer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7fb;
+      --card-bg: #ffffff;
+      --primary: #3c6e71;
+      --primary-dark: #274c52;
+      --muted: #52606d;
+      --border: #d2d6dc;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f0f4f8 0%, #f6f7fb 40%, #ffffff 100%);
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .app-shell {
+      width: min(1080px, 100%);
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 20px 45px rgba(31, 41, 51, 0.14);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 24px 32px;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    main {
+      padding: 28px 32px 34px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      box-shadow: 0 12px 28px rgba(82, 96, 109, 0.08);
+    }
+
+    .status-banner {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #f0f4f8;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .status-banner.error {
+      background: #fde8e8;
+      border-color: #f5c2c0;
+      color: #9b1c1c;
+    }
+
+    .status-banner.success {
+      background: #e3f9e5;
+      border-color: #b7f5c2;
+      color: #0f5132;
+    }
+
+    .assignments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .assignment-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+
+    .assignment-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .assignment-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin: 0;
+      color: var(--primary-dark);
+    }
+
+    .unit-badge {
+      background: #e0f2f1;
+      color: var(--primary-dark);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .field-list {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .field-item {
+      display: grid;
+      gap: 2px;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .field-value {
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 3px solid rgba(60, 110, 113, 0.2);
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>Homework Problem Database Viewer</h1>
+      <p>Showing every assignment record directly from Airtable—no filters or selection required.</p>
+    </header>
+    <main>
+      <div id="status-area"></div>
+      <div class="card">
+        <div id="loading" class="loading">
+          <div class="spinner" role="status" aria-label="Loading"></div>
+          <span>Loading assignments from Airtable…</span>
+        </div>
+        <div id="assignments" class="assignments-grid" hidden></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const DEBUG_MODE = true; // Set to false once Airtable mapping is verified
+
+    const DEFAULT_CONFIG = {
+      AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.d93cc816ba0e0dc0c22bbe5eaada139d84f864256b401446d1c2726da1247b4f',
+      AIRTABLE_BASE_ID: 'appTwYDVvnYPB8D2N',
+      TABLES: {
+        STUDENTS: 'tblFr5ExAzNUYeLFU',
+        PROBLEMS: 'tblE2IAeKV2TVEjJG',
+        FEEDBACK: 'tblRNpi8trhwyuPA1'
+      }
+    };
+
+    const CONFIG = Object.freeze({
+      ...DEFAULT_CONFIG,
+      ...(window.AIRTABLE_CONFIG || {}),
+      TABLES: {
+        ...DEFAULT_CONFIG.TABLES,
+        ...((window.AIRTABLE_CONFIG && window.AIRTABLE_CONFIG.TABLES) || {})
+      }
+    });
+
+    const FIELD_IDS = {
+      ASSIGNMENT: 'fldweYYDmL5L9ZX6h',
+      LESSON_NUMBER: 'fldLBfnSmtT73kksL',
+      QUESTION_NUMBER: 'fldNULf9EHRiaMW6U',
+      QUESTION_TEXT: 'fldkHsVoFXUAGZtVV',
+      CHOICES: 'fld63vTQBF2zuHMcZ',
+      MATH_CONCEPT: 'fldRTh5ezuoJbTOKo',
+      DIFFICULTY: 'fld4MltpGv5jeL2wj',
+      REASONING: 'fldUL0fnXtqmPKgnP',
+      CLASS: 'fldZK2fpzpcxKXsiV',
+      RUBRIC_ITEMS: 'fldIVctmd80OaxtRm',
+      UNIT_TITLE: 'fldgEoYzwofLCyqDX',
+      UNIT_NUMBER: 'fldd4q2agTJuAVVhz',
+      ASSIGNMENT_NAME: 'fldRZDWHGVMLge7sK'
+    };
+
+    const FIELD_NAMES = {
+      ASSIGNMENT: ['Assignments', 'Assignment Name', 'Assignment', 'Assignment Title', 'Task', FIELD_IDS.ASSIGNMENT, FIELD_IDS.ASSIGNMENT_NAME],
+      LESSON_NUMBER: ['Lesson Number', 'Lesson', FIELD_IDS.LESSON_NUMBER],
+      QUESTION_NUMBER: ['Question Number', 'Question', FIELD_IDS.QUESTION_NUMBER],
+      QUESTION_TEXT: ['Question Text', 'Prompt', FIELD_IDS.QUESTION_TEXT],
+      CHOICES: ['Choices', 'Options', FIELD_IDS.CHOICES],
+      MATH_CONCEPT: ['Math Concept', 'Concept', FIELD_IDS.MATH_CONCEPT],
+      DIFFICULTY: ['Difficulty', FIELD_IDS.DIFFICULTY],
+      REASONING: ['Reasoning', FIELD_IDS.REASONING],
+      CLASS: ['Class', FIELD_IDS.CLASS],
+      RUBRIC_ITEMS: ['Rubric Items', 'Rubric', FIELD_IDS.RUBRIC_ITEMS],
+      UNIT_TITLE: ['Unit Title', 'Unit', FIELD_IDS.UNIT_TITLE],
+      UNIT_NUMBER: ['Unit Number', 'Unit', FIELD_IDS.UNIT_NUMBER],
+      ASSIGNMENT_NAME_ONLY: ['Assignment Name', FIELD_IDS.ASSIGNMENT_NAME]
+    };
+
+    const statusArea = document.getElementById('status-area');
+    const loadingRow = document.getElementById('loading');
+    const assignmentsGrid = document.getElementById('assignments');
+
+    function showStatus(message, type = 'info') {
+      const banner = document.createElement('div');
+      banner.className = `status-banner ${type === 'error' ? 'error' : type === 'success' ? 'success' : ''}`;
+      banner.textContent = message;
+      statusArea.appendChild(banner);
+    }
+
+    function formatValue(value) {
+      if (Array.isArray(value)) return value.join(', ');
+      if (value === undefined || value === null || value === '') return '—';
+      return String(value);
+    }
+
+    function extractFirstAvailable(fields, keys) {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(fields, key) && fields[key] !== undefined && fields[key] !== null) {
+          return fields[key];
+        }
+      }
+      return undefined;
+    }
+
+    function getFieldValue(fields, fieldKey) {
+      const value = extractFirstAvailable(fields, FIELD_NAMES[fieldKey] || []);
+      if (DEBUG_MODE && value === undefined) {
+        console.warn(`⚠️ Missing field for ${fieldKey}. Available columns:`, Object.keys(fields));
+      }
+      return value;
+    }
+
+    function renderAssignments(records) {
+      assignmentsGrid.innerHTML = '';
+      if (!records.length) {
+        showStatus('No assignment records were returned from Airtable.', 'error');
+        return;
+      }
+
+      records.forEach((record) => {
+        const fields = record.fields || {};
+        if (DEBUG_MODE) {
+          console.group(`Processing Record ${record.id}`);
+          console.log('Fields present:', Object.keys(fields));
+        }
+        const card = document.createElement('article');
+        card.className = 'assignment-card';
+
+        const header = document.createElement('div');
+        header.className = 'assignment-header';
+
+        const name = document.createElement('p');
+        name.className = 'assignment-name';
+        name.textContent = formatValue(
+          getFieldValue(fields, 'ASSIGNMENT') || getFieldValue(fields, 'ASSIGNMENT_NAME_ONLY')
+        );
+        header.appendChild(name);
+
+        const unit = document.createElement('span');
+        unit.className = 'unit-badge';
+        const unitNumber = getFieldValue(fields, 'UNIT_NUMBER');
+        const unitTitle = getFieldValue(fields, 'UNIT_TITLE');
+        unit.textContent = unitTitle ? `Unit ${unitNumber}: ${unitTitle}` : `Unit ${formatValue(unitNumber)}`;
+        header.appendChild(unit);
+
+        card.appendChild(header);
+
+        const list = document.createElement('ul');
+        list.className = 'field-list';
+
+        const fieldEntries = [
+          ['Assignments', getFieldValue(fields, 'ASSIGNMENT')],
+          ['Assignment Name', getFieldValue(fields, 'ASSIGNMENT_NAME_ONLY')],
+          ['Unit Title', getFieldValue(fields, 'UNIT_TITLE')],
+          ['Unit Number', getFieldValue(fields, 'UNIT_NUMBER')],
+          ['Lesson Number', getFieldValue(fields, 'LESSON_NUMBER')],
+          ['Question Number', getFieldValue(fields, 'QUESTION_NUMBER')],
+          ['Question Text', getFieldValue(fields, 'QUESTION_TEXT')],
+          ['Math Concept', getFieldValue(fields, 'MATH_CONCEPT')],
+          ['Choices', getFieldValue(fields, 'CHOICES')],
+          ['Difficulty', getFieldValue(fields, 'DIFFICULTY')],
+          ['Reasoning', getFieldValue(fields, 'REASONING')],
+          ['Class', getFieldValue(fields, 'CLASS')],
+          ['Rubric Items', getFieldValue(fields, 'RUBRIC_ITEMS')]
+        ];
+
+        fieldEntries.forEach(([label, value]) => {
+          const item = document.createElement('li');
+          item.className = 'field-item';
+          const labelEl = document.createElement('span');
+          labelEl.className = 'field-label';
+          labelEl.textContent = label;
+          const valueEl = document.createElement('span');
+          valueEl.className = 'field-value';
+          valueEl.textContent = formatValue(value);
+          item.appendChild(labelEl);
+          item.appendChild(valueEl);
+          list.appendChild(item);
+        });
+
+        card.appendChild(list);
+        assignmentsGrid.appendChild(card);
+
+        if (DEBUG_MODE) {
+          console.log('Rendered values:', Object.fromEntries(fieldEntries));
+          console.groupEnd();
+        }
+      });
+
+      assignmentsGrid.hidden = false;
+    }
+
+    async function airtableFetch(tableId, params = {}) {
+      const baseId = String(CONFIG.AIRTABLE_BASE_ID || '').trim();
+      const tableSegment = String(tableId || '').trim();
+      if (!baseId || !tableSegment) {
+        throw new Error('Airtable base or table configuration is missing.');
+      }
+
+      const url = new URL(
+        `https://api.airtable.com/v0/${encodeURIComponent(baseId)}/${encodeURIComponent(tableSegment)}`
+      );
+      Object.entries(params).forEach(([key, value]) => {
+        if (value != null) {
+          url.searchParams.append(key, value);
+        }
+      });
+
+      const records = [];
+      let offset;
+      do {
+        if (offset) {
+          url.searchParams.set('offset', offset);
+        }
+        const response = await fetch(url.toString(), {
+          headers: {
+            Authorization: `Bearer ${CONFIG.AIRTABLE_API_KEY}`
+          }
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Airtable request failed (${response.status}). ${text}`);
+        }
+        const data = await response.json();
+        records.push(...data.records);
+        offset = data.offset;
+      } while (offset);
+
+      return records;
+    }
+
+    async function init() {
+      try {
+        const records = await airtableFetch(CONFIG.TABLES.PROBLEMS, { pageSize: 100 });
+        renderAssignments(records);
+        loadingRow.remove();
+        showStatus(
+          `Loaded ${records.length} assignment record${records.length === 1 ? '' : 's'} from table ${CONFIG.TABLES.PROBLEMS}.`,
+          'success'
+        );
+      } catch (error) {
+        console.error(error);
+        loadingRow.remove();
+        showStatus(`Could not load assignments: ${error.message}`, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    /**
+     * TROUBLESHOOTING TOOL
+     * Run checkDataMapping() in the browser console to verify Airtable connectivity and column names.
+     */
+    window.checkDataMapping = async function () {
+      console.clear();
+      console.log('%c 🛠️ STARTING DIAGNOSTIC...', 'background: #222; color: #bada55; font-size: 20px');
+
+      if (!CONFIG.AIRTABLE_API_KEY) {
+        console.error('❌ API Key is missing.');
+        return;
+      }
+
+      try {
+        console.log('1. Fetching one record from Airtable...');
+        const response = await fetch(
+          `https://api.airtable.com/v0/${CONFIG.AIRTABLE_BASE_ID}/${CONFIG.TABLES.PROBLEMS}?maxRecords=1`,
+          { headers: { Authorization: `Bearer ${CONFIG.AIRTABLE_API_KEY}` } }
+        );
+
+        const data = await response.json();
+
+        if (!data.records || data.records.length === 0) {
+          console.error('❌ Connection successful, but Table is EMPTY.');
+          return;
+        }
+
+        const record = data.records[0];
+        const fields = Object.keys(record.fields);
+
+        console.log('%c✅ Successfully connected to Airtable!', 'color: green; font-weight: bold;');
+        console.log('The columns found in your Airtable are:', fields);
+        console.log('---------------------------------------------------');
+
+        const checks = [
+          ['Unit Number', 'UNIT_NUMBER'],
+          ['Lesson Number', 'LESSON_NUMBER'],
+          ['Assignment', 'ASSIGNMENT'],
+          ['Assignment Name', 'ASSIGNMENT_NAME_ONLY']
+        ];
+
+        checks.forEach(([label, key]) => {
+          const value = extractFirstAvailable(record.fields, FIELD_NAMES[key] || []);
+          if (value) {
+            console.log(`✅ ${label} Column Found: Parsed as "${value}"`);
+          } else {
+            console.error(
+              `❌ ${label.toUpperCase()} COLUMN MISSING. Expected one of: ${
+                (FIELD_NAMES[key] || []).join(', ')
+              }. Found: ${fields.join(', ')}`
+            );
+          }
+        });
+
+        console.log('---------------------------------------------------');
+        console.log('If you see ❌ above, add the correct column name to the FIELD_NAMES constant in the code.');
+      } catch (e) {
+        console.error('❌ Connection Failed:', e);
+      }
+    };
+
+    if (location.hostname === 'localhost' || location.protocol === 'file:') {
+      setTimeout(window.checkDataMapping, 2000);
+    }
+  </script>
+</body>
+</html>
