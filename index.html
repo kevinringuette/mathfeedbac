@@ -467,12 +467,12 @@
 
   <script>
     const DEFAULT_CONFIG = {
-      AIRTABLE_API_KEY: 'YOUR_AIRTABLE_API_KEY',
-      AIRTABLE_BASE_ID: 'YOUR_AIRTABLE_BASE_ID',
+      AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.d93cc816ba0e0dc0c22bbe5eaada139d84f864256b401446d1c2726da1247b4f',
+      AIRTABLE_BASE_ID: 'appTwYDVvnYPB8D2N',
       TABLES: {
-        STUDENTS: 'YOUR_STUDENTS_TABLE_ID',
-        PROBLEMS: 'YOUR_PROBLEMS_TABLE_ID',
-        FEEDBACK: 'YOUR_FEEDBACK_TABLE_ID'
+        STUDENTS: 'tblFr5ExAzNUYeLFU',
+        PROBLEMS: 'tblE2IAeKV2TVEjJG',
+        FEEDBACK: 'tblRNpi8trhwyuPA1'
       }
     };
 
@@ -532,10 +532,11 @@
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
       UNIT: ['Unit', 'Unit Name', 'Section Unit', 'Unit Number'],
       LESSON: ['Lesson', 'Lesson Name', 'Section Lesson', 'Lesson Number'],
-      PROBLEM_TITLE: ['Problem', 'Problem Name', 'Title', 'Name', 'Math Concept'],
+      PROBLEM_TITLE: ['Problem', 'Problem Name', 'Title', 'Name'],
       PROBLEM_IDENTIFIER: ['Question Number', 'Problem Number', 'Prompt ID'],
       PROBLEM_DESCRIPTION: ['Prompt', 'Question', 'Description', 'Problem Text', 'Question Text'],
-      PROBLEM_DETAILS: ['Reasoning', 'Choices', 'Rubric Items', 'Math Concept'],
+      PROBLEM_DETAILS: ['Reasoning', 'Choices', 'Rubric Items'],
+      PROBLEM_CONCEPT: ['Math Concept', 'Concept'],
       FEEDBACK_STUDENT_LINK: 'Student',
       FEEDBACK_STUDENT_NAME: 'Student Name',
       FEEDBACK_UNIT: 'Unit',
@@ -792,19 +793,29 @@
 
           const identifier = extractFirstAvailable(record.fields, FIELD_NAMES.PROBLEM_IDENTIFIER);
           const title = extractFirstAvailable(record.fields, FIELD_NAMES.PROBLEM_TITLE);
+          const concept = extractFirstAvailable(record.fields, FIELD_NAMES.PROBLEM_CONCEPT);
           const primaryDescription = extractFirstAvailable(record.fields, FIELD_NAMES.PROBLEM_DESCRIPTION);
           const detailDescriptions = collectAllAvailable(record.fields, FIELD_NAMES.PROBLEM_DETAILS);
 
-          let label = title;
+          const labelPieces = [];
           if (identifier) {
-            label = title ? `${identifier} • ${title}` : `Problem ${identifier}`;
+            labelPieces.push(`Q${identifier}`);
           }
+          if (title) {
+            labelPieces.push(title);
+          } else if (concept) {
+            labelPieces.push(concept);
+          }
+          let label = labelPieces.join(' • ');
           if (!label) {
             const index = problemsByKey.get(key).length + 1;
             label = identifier ? `Problem ${identifier}` : `Problem ${index}`;
           }
 
           const descriptionParts = [];
+          if (concept && concept !== title) {
+            descriptionParts.push(`Concept: ${concept}`);
+          }
           if (primaryDescription) {
             descriptionParts.push(String(primaryDescription).trim());
           }
