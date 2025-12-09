@@ -1092,9 +1092,13 @@
         row.appendChild(problemCell);
 
         const handleSelection = (value, labelEl) => {
+          const preservedScroll = mainContent.scrollTop;
           state.responses[p.id] = value;
           row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
           labelEl.classList.add('selected');
+          requestAnimationFrame(() => {
+            mainContent.scrollTop = preservedScroll;
+          });
         };
 
         RESPONSE_OPTIONS.forEach(opt => {
