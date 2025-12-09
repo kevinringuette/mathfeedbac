@@ -970,6 +970,17 @@
       const grid = document.createElement('div');
       grid.className = 'feedback-grid';
 
+      const scrollContainer = document.querySelector('.main-content');
+      const safeScroll = (target) => {
+        if (!scrollContainer || !target) return;
+
+        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        const nearBottom = scrollContainer.scrollTop >= maxScroll - 4;
+        if (nearBottom) return;
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      };
+
       problems.forEach((p) => {
         const row = document.createElement('div');
         row.className = 'feedback-row';
@@ -992,8 +1003,8 @@
           row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
           labelEl.classList.add('selected');
           const nextRow = row.nextElementSibling;
-          if (nextRow) nextRow.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-          else document.getElementById('btn-submit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (nextRow) safeScroll(nextRow);
+          else safeScroll(document.getElementById('btn-submit'));
         };
 
         RESPONSE_OPTIONS.forEach(opt => {
