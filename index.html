@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Permissions-Policy" content="browsing-topics=(), interest-cohort=()" />
   <title>Math Homework Feedback</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
     integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
@@ -13,7 +15,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
     crossorigin="anonymous"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       color-scheme: light;
@@ -37,13 +38,25 @@
       box-sizing: border-box;
     }
 
+    html {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+    }
+
     body {
       margin: 0;
-      height: 100vh;
+      height: 100%;
+      width: 100%;
       background: var(--bg);
       color: var(--text);
       overflow: hidden;
+      position: fixed;
+      inset: 0;
       /* Prevent body scroll, handle in layout */
+      overscroll-behavior: none;
     }
 
     /* Login Screen (Standalone) */
@@ -73,7 +86,11 @@
       display: none;
       /* Hidden until login */
       grid-template-columns: 280px 1fr;
-      height: 100vh;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
     }
 
     /* Sidebar */
@@ -173,6 +190,9 @@
       overflow-y: auto;
       padding: 48px;
       background: var(--bg);
+      overscroll-behavior: contain;
+      height: 100%;
+      max-height: 100vh;
     }
 
     .content-container {
@@ -350,68 +370,170 @@
       vertical-align: middle;
     }
 
-    /* Form Styles */
-    .problem-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      padding: 32px;
-      margin-bottom: 24px;
-      border-radius: 8px;
+    /* Form Styles - table layout */
+    .feedback-grid {
+      display: grid;
+      gap: 10px;
     }
 
-    .problem-title {
-      font-size: 1.4rem;
+    .feedback-row {
+      display: grid;
+      grid-template-columns: 1.6fr repeat(4, 1fr);
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      scroll-margin: 120px 0 120px 0;
+    }
+
+    .feedback-row + .feedback-row {
+      margin-top: 0;
+    }
+
+    .feedback-header {
+      background: var(--sidebar-bg);
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .cell {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cell.option-cell {
+      justify-content: center;
+      border-left: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .problem-cell {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 16px 18px;
+      gap: 6px;
+    }
+
+    .problem-cell .problem-title {
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--primary);
       display: flex;
+      gap: 8px;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
     }
 
     .part-label {
-      font-size: 1.4rem;
+      font-size: 1rem;
       font-weight: 700;
       color: var(--accent);
     }
 
     .problem-description {
       color: var(--muted);
-      margin: 8px 0 24px;
-      font-size: 1.05rem;
-      line-height: 1.5;
+      margin: 4px 0 0;
+      font-size: 0.98rem;
+      line-height: 1.4;
     }
 
-    .options {
-      display: grid;
-      gap: 12px;
-    }
-
-    .option {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .comment-box {
+      width: 100%;
+      margin-top: 10px;
+      resize: vertical;
+      min-height: 70px;
+      padding: 10px 12px;
       border: 1px solid var(--border);
-      padding: 16px;
-      border-radius: 6px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: #fdfdfd;
+    }
+
+    .comment-label {
+      font-weight: 600;
+      color: var(--primary);
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    .choice-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      justify-content: center;
+      width: 100%;
+      font-weight: 600;
     }
 
-    .option:hover {
-      border-color: var(--primary);
+    .choice-pill:hover {
       background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
-    .option.selected {
+    .choice-pill.selected {
       background: var(--primary);
       border-color: var(--primary);
       color: #fff;
+      box-shadow: 0 6px 12px rgba(9, 47, 87, 0.12);
     }
 
-    .option input {
-      accent-color: var(--primary);
-      transform: scale(1.2);
+    .overall-section {
+      margin-top: 28px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .overall-title {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .rating-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .star-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      min-width: 60px;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .star-btn.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 6px 12px rgba(9, 47, 87, 0.12);
+    }
+
+    .choice-pill input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
     }
 
     /* Buttons */
@@ -507,15 +629,6 @@
     <div class="login-card">
       <h1 style="color: var(--primary); margin-bottom: 8px;">Math Feedback</h1>
       <p style="color: var(--muted); margin-bottom: 32px;">Sign in to access your assignments</p>
-
-      <!-- Google Sign-In (Hidden for Testing) -->
-      <div id="g_id_onload" hidden
-        data-client_id="728970954163-viap0tnh1lneqrmgdq1jtn5asfuns9cb.apps.googleusercontent.com"
-        data-callback="handleCredentialResponse" data-auto_prompt="false">
-      </div>
-      <div class="g_id_signin" hidden data-type="standard" data-size="large" data-theme="outline"
-        data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="center">
-      </div>
 
       <!-- Manual Test Login -->
       <div class="manual-login">
@@ -643,7 +756,11 @@
       MATH_CONCEPT: ['Math Concept', 'Concept'],
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
-      FEEDBACK_TEXT: 'Individual Feedback'
+      FEEDBACK_TEXT: ['Individual Feeback', 'Individual Feedback', 'Feedback', 'Feedback Choice', 'Feedback Option'],
+      FEEDBACK_STUDENT_LINK: ['Students', 'Student', 'Student Link'],
+      FEEDBACK_COMMENT: ['Comment', 'Comments', 'Overall Comment'],
+      FEEDBACK_RATING: ['Rating', 'Overall Rating'],
+      FEEDBACK_HOMEWORK_NAME: ['Homework Name']
     };
 
     const RESPONSE_OPTIONS = [
@@ -661,7 +778,18 @@
       history: [], // Array of feedback records
       currentUser: null, // { id, name, email }
       currentAssignment: null, // String name
-      responses: {} // For the form
+      responses: {}, // For the form
+      problemComments: {},
+      overallComment: '',
+      overallRating: null
+    };
+
+    const resolvedFields = {
+      feedbackText: Array.isArray(FIELD_NAMES.FEEDBACK_TEXT) ? FIELD_NAMES.FEEDBACK_TEXT[0] : FIELD_NAMES.FEEDBACK_TEXT,
+      feedbackStudentLink: Array.isArray(FIELD_NAMES.FEEDBACK_STUDENT_LINK) ? FIELD_NAMES.FEEDBACK_STUDENT_LINK[0] : FIELD_NAMES.FEEDBACK_STUDENT_LINK,
+      feedbackComment: Array.isArray(FIELD_NAMES.FEEDBACK_COMMENT) ? FIELD_NAMES.FEEDBACK_COMMENT[0] : FIELD_NAMES.FEEDBACK_COMMENT,
+      feedbackRating: Array.isArray(FIELD_NAMES.FEEDBACK_RATING) ? FIELD_NAMES.FEEDBACK_RATING[0] : FIELD_NAMES.FEEDBACK_RATING,
+      feedbackHomeworkName: Array.isArray(FIELD_NAMES.FEEDBACK_HOMEWORK_NAME) ? FIELD_NAMES.FEEDBACK_HOMEWORK_NAME[0] : FIELD_NAMES.FEEDBACK_HOMEWORK_NAME
     };
 
     // Elements
@@ -671,6 +799,7 @@
     const studentList = document.getElementById('student-list');
     const assignmentList = document.getElementById('assignment-list');
     const studentNameDisplay = document.getElementById('student-name-display');
+    const mainContent = document.querySelector('.main-content');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
 
@@ -688,6 +817,7 @@
       setLoading(true, 'Loading class data...');
       try {
         await Promise.all([loadStudents(), loadProblems()]);
+        await resolveFeedbackFieldNames();
         setLoading(false);
         setupLogin();
       } catch (e) {
@@ -697,6 +827,22 @@
     }
 
     // --- Data Loading ---
+
+    async function resolveFeedbackFieldNames() {
+      try {
+        const sampleRecords = await airtableFetch(CONFIG.TABLES.FEEDBACK, { pageSize: 1, maxRecords: 1 });
+        if (sampleRecords.length) {
+          const availableKeys = Object.keys(sampleRecords[0].fields || {});
+          resolvedFields.feedbackText = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_TEXT, resolvedFields.feedbackText);
+          resolvedFields.feedbackStudentLink = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_STUDENT_LINK, resolvedFields.feedbackStudentLink);
+          resolvedFields.feedbackComment = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_COMMENT, resolvedFields.feedbackComment);
+          resolvedFields.feedbackRating = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_RATING, resolvedFields.feedbackRating);
+          resolvedFields.feedbackHomeworkName = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME, resolvedFields.feedbackHomeworkName);
+        }
+      } catch (err) {
+        console.warn('Could not auto-resolve feedback field names from Airtable', err);
+      }
+    }
 
     async function loadStudents() {
       const records = await airtableFetch(CONFIG.TABLES.STUDENTS, { pageSize: 100 });
@@ -726,8 +872,15 @@
           assignmentMeta.set(assign, {
             name: assign,
             unit: extractFirstAvailable(r.fields, FIELD_NAMES.UNIT),
-            lesson: extractFirstAvailable(r.fields, FIELD_NAMES.LESSON)
+            lesson: extractFirstAvailable(r.fields, FIELD_NAMES.LESSON),
+            homeworkNameId: extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME)
           });
+        }
+
+        // Update homework link if later records contain it
+        const meta = assignmentMeta.get(assign);
+        if (!meta.homeworkNameId) {
+          meta.homeworkNameId = extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME);
         }
 
         if (!map.has(assign)) map.set(assign, []);
@@ -784,7 +937,7 @@
           id: r.id,
           assignment,
           problem,
-          feedback: r.fields[FIELD_NAMES.FEEDBACK_TEXT],
+          feedback: r.fields[resolvedFields.feedbackText],
           concept: extractFirstAvailable(r.fields, FIELD_NAMES.MATH_CONCEPT)
         };
       }).filter(h => h.assignment);
@@ -912,54 +1065,115 @@
       const container = document.getElementById('problems-container');
       container.innerHTML = '';
       state.responses = {};
+      state.problemComments = {};
+      state.overallComment = '';
+      state.overallRating = null;
 
       const problems = state.problemsByAssignment.get(assignment) || [];
 
-      problems.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'problem-card';
-        card.id = `card-${p.id}`;
+      const grid = document.createElement('div');
+      grid.className = 'feedback-grid';
 
-        const title = document.createElement('div');
-        title.className = 'problem-title';
-        title.innerHTML = `
-            ${p.label} 
-            ${p.partLabel ? `<span class="part-label">${p.partLabel}</span>` : ''}
-            ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
+      problems.forEach((p) => {
+        const row = document.createElement('div');
+        row.className = 'feedback-row';
+        row.id = `row-${p.id}`;
+
+        const problemCell = document.createElement('div');
+        problemCell.className = 'cell problem-cell';
+        problemCell.innerHTML = `
+            <div class="problem-title">
+              ${p.label}
+              ${p.partLabel ? `<span class="part-label">${p.partLabel}</span>` : ''}
+              ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
+            </div>
+            ${p.description ? `<div class="problem-description">${p.description}</div>` : ''}
         `;
-        card.appendChild(title);
+        row.appendChild(problemCell);
 
-        if (p.description) {
-          const desc = document.createElement('div');
-          desc.className = 'problem-description';
-          desc.textContent = p.description;
-          card.appendChild(desc);
-        }
+        const handleSelection = (value, labelEl) => {
+          state.responses[p.id] = value;
+          row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
+          labelEl.classList.add('selected');
+        };
 
-        const opts = document.createElement('div');
-        opts.className = 'options';
         RESPONSE_OPTIONS.forEach(opt => {
-          const div = document.createElement('div');
-          div.className = 'option';
-          div.innerHTML = `<input type="radio" name="p-${p.id}" value="${opt.value}"> <span>${opt.emoji} ${opt.label}</span>`;
-          div.onclick = () => {
-            div.querySelector('input').checked = true;
-            state.responses[p.id] = opt.value;
-            // Highlight
-            opts.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-            div.classList.add('selected');
-            // Auto-scroll
-            const next = card.nextElementSibling;
-            if (next) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            else document.getElementById('btn-submit').scrollIntoView({ behavior: 'smooth' });
-          };
-          opts.appendChild(div);
+          const optionCell = document.createElement('div');
+          optionCell.className = 'cell option-cell';
+
+          const label = document.createElement('label');
+          label.className = 'choice-pill';
+          label.innerHTML = `<input type="radio" name="p-${p.id}" value="${opt.value}"> <span>${opt.emoji}</span> <span>${opt.label}</span>`;
+          const input = label.querySelector('input');
+          const select = () => handleSelection(opt.value, label);
+          input.addEventListener('change', select);
+          label.addEventListener('click', () => {
+            input.checked = true;
+            select();
+          });
+
+          optionCell.appendChild(label);
+          row.appendChild(optionCell);
         });
-        card.appendChild(opts);
-        container.appendChild(card);
+
+        grid.appendChild(row);
+
+        const commentWrapper = document.createElement('div');
+        commentWrapper.className = 'feedback-row';
+        const commentCell = document.createElement('div');
+        commentCell.className = 'cell problem-cell';
+        commentCell.style.gridColumn = '1 / -1';
+
+        const commentLabel = document.createElement('label');
+        commentLabel.className = 'comment-label';
+        commentLabel.textContent = 'Questions or comments for this problem (optional)';
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'comment-box';
+        textarea.placeholder = 'Share where you got stuck or any thoughts on this problem...';
+        textarea.oninput = (e) => {
+          state.problemComments[p.id] = e.target.value;
+        };
+
+        commentCell.appendChild(commentLabel);
+        commentCell.appendChild(textarea);
+        commentWrapper.appendChild(commentCell);
+        grid.appendChild(commentWrapper);
       });
 
-      renderMath(container);
+      container.appendChild(grid);
+
+      const overallSection = document.createElement('div');
+      overallSection.className = 'overall-section';
+      overallSection.innerHTML = `
+        <h3 class="overall-title">Overall reflection</h3>
+        <label class="comment-label" for="overall-comment">How did this homework feel?</label>
+        <textarea id="overall-comment" class="comment-box" placeholder="Share anything that stood out..." required></textarea>
+        <div class="comment-label" style="margin-bottom: 2px;">Overall confidence (0-5 stars)</div>
+        <div id="rating-row" class="rating-row"></div>
+      `;
+      container.appendChild(overallSection);
+
+      const ratingRow = overallSection.querySelector('#rating-row');
+      for (let i = 0; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'star-btn';
+        btn.textContent = `${'★'.repeat(i)}${'☆'.repeat(5 - i)} (${i})`;
+        btn.onclick = () => {
+          state.overallRating = i;
+          overallSection.querySelectorAll('.star-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        };
+        ratingRow.appendChild(btn);
+      }
+
+      const overallCommentInput = overallSection.querySelector('#overall-comment');
+      overallCommentInput.oninput = (e) => {
+        state.overallComment = e.target.value;
+      };
+
+      renderMath(grid);
 
       document.getElementById('btn-cancel-upload').onclick = () => switchView('empty');
 
@@ -978,20 +1192,56 @@
         return;
       }
 
+      if (!state.overallComment.trim()) {
+        alert('Please add your overall comment.');
+        return;
+      }
+
+      if (state.overallRating === null) {
+        alert('Please add your overall confidence rating.');
+        return;
+      }
+
       setLoading(true, 'Submitting...');
       try {
-        const payload = {
-          records: problems.map(p => ({
+        const assignmentMeta = state.assignments.find(a => a.name === state.currentAssignment);
+        const homeworkNameId = assignmentMeta?.homeworkNameId;
+
+        const records = problems.map(p => {
+          const feedbackLabel = RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label;
+          const commentText = (state.problemComments[p.id] || '').trim();
+          const feedbackText = commentText ? `${feedbackLabel} — ${commentText}` : feedbackLabel;
+
+          return {
             fields: {
               [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
               [FIELD_NAMES.FEEDBACK_PROBLEM_LINK]: [p.id],
-              [FIELD_NAMES.FEEDBACK_TEXT]: RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label
+              [resolvedFields.feedbackText]: feedbackText,
+              ...(commentText && resolvedFields.feedbackComment ? { [resolvedFields.feedbackComment]: commentText } : {}),
+              ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {}),
+              ...(homeworkNameId && resolvedFields.feedbackHomeworkName ? { [resolvedFields.feedbackHomeworkName]: [homeworkNameId] } : {})
             }
-          })),
-          typecast: true
-        };
+          };
+        });
 
-        await airtableCreate(CONFIG.TABLES.FEEDBACK, payload);
+        // Overall reflection record (no Homework Problem link)
+        records.push({
+          fields: {
+            [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
+            [resolvedFields.feedbackComment]: state.overallComment.trim(),
+            [resolvedFields.feedbackRating]: state.overallRating,
+            [resolvedFields.feedbackText]: 'Overall reflection',
+            ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {}),
+            ...(homeworkNameId && resolvedFields.feedbackHomeworkName ? { [resolvedFields.feedbackHomeworkName]: [homeworkNameId] } : {})
+          }
+        });
+
+        // Airtable limits create requests to 10 records. Batch submissions to avoid 422 errors.
+        const batchSize = 10;
+        for (let i = 0; i < records.length; i += batchSize) {
+          const batch = records.slice(i, i + batchSize);
+          await airtableCreate(CONFIG.TABLES.FEEDBACK, { records: batch, typecast: true });
+        }
         await fetchHistory(); // Refresh data
         renderSidebar(); // Update checkmarks
 
@@ -1001,7 +1251,7 @@
 
       } catch (e) {
         console.error(e);
-        alert('Error submitting feedback.');
+        alert(`Error submitting feedback: ${e.message}`);
       } finally {
         setLoading(false);
       }
@@ -1135,8 +1385,17 @@
         },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('API Error');
-      return res.json();
+      if (res.ok) return res.json();
+
+      let errorDetail = 'API Error';
+      try {
+        const body = await res.json();
+        if (body?.error?.message) errorDetail = body.error.message;
+      } catch (err) {
+        // Ignore parsing issues and use default error detail
+      }
+
+      throw new Error(errorDetail);
     }
 
     function extractFirstAvailable(fields, keys) {
@@ -1145,6 +1404,15 @@
         if (fields[k]) return Array.isArray(fields[k]) ? fields[k][0] : fields[k];
       }
       return null;
+    }
+
+    function pickFirstAvailableKey(availableKeys, candidates, fallback) {
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      const availableSet = new Set(availableKeys || []);
+      for (const key of list) {
+        if (availableSet.has(key)) return key;
+      }
+      return fallback || list[0];
     }
 
     // Google Auth Callback
