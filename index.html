@@ -1091,11 +1091,14 @@
         `;
         row.appendChild(problemCell);
 
-        const handleSelection = (value, labelEl) => {
+        const handleSelection = (value, labelEl, inputEl) => {
           const preservedScroll = mainContent.scrollTop;
           state.responses[p.id] = value;
           row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
           labelEl.classList.add('selected');
+          if (document.activeElement !== inputEl) {
+            inputEl.focus({ preventScroll: true });
+          }
           requestAnimationFrame(() => {
             mainContent.scrollTop = preservedScroll;
           });
@@ -1109,9 +1112,14 @@
           label.className = 'choice-pill';
           label.innerHTML = `<input type="radio" name="p-${p.id}" value="${opt.value}"> <span>${opt.emoji}</span> <span>${opt.label}</span>`;
           const input = label.querySelector('input');
-          const select = () => handleSelection(opt.value, label);
+          const select = () => handleSelection(opt.value, label, input);
           input.addEventListener('change', select);
-          label.addEventListener('click', () => {
+          label.addEventListener('mousedown', (event) => {
+            // Prevent native click scroll behavior before we manually focus without scrolling
+            event.preventDefault();
+          });
+          label.addEventListener('click', (event) => {
+            event.preventDefault();
             input.checked = true;
             select();
           });
