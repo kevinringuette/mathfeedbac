@@ -971,19 +971,21 @@
 
       setLoading(true, 'Submitting...');
       try {
-        const payload = {
-          records: problems.map(p => ({
-            fields: {
-              [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
-              [FIELD_NAMES.FEEDBACK_PROBLEM_LINK]: [p.id],
-              [FIELD_NAMES.FEEDBACK_TEXT]: RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label,
-              ...(FIELD_NAMES.FEEDBACK_STUDENT_LINK ? { [FIELD_NAMES.FEEDBACK_STUDENT_LINK[0]]: [state.currentUser.id] } : {})
-            }
-          })),
-          typecast: true
-        };
+        const records = problems.map(p => ({
+          fields: {
+            [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
+            [FIELD_NAMES.FEEDBACK_PROBLEM_LINK]: [p.id],
+            [FIELD_NAMES.FEEDBACK_TEXT]: RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label,
+            ...(FIELD_NAMES.FEEDBACK_STUDENT_LINK ? { [FIELD_NAMES.FEEDBACK_STUDENT_LINK[0]]: [state.currentUser.id] } : {})
+          }
+        }));
 
-        await airtableCreate(CONFIG.TABLES.FEEDBACK, payload);
+        // Airtable limits create requests to 10 records. Batch submissions to avoid 422 errors.
+        const batchSize = 10;
+        for (let i = 0; i < records.length; i += batchSize) {
+          const batch = records.slice(i, i + batchSize);
+          await airtableCreate(CONFIG.TABLES.FEEDBACK, { records: batch, typecast: true });
+        }
         await fetchHistory(); // Refresh data
         renderSidebar(); // Update checkmarks
 
