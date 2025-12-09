@@ -422,6 +422,27 @@
       line-height: 1.4;
     }
 
+    .comment-box {
+      width: 100%;
+      margin-top: 10px;
+      resize: vertical;
+      min-height: 70px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: #fdfdfd;
+    }
+
+    .comment-label {
+      font-weight: 600;
+      color: var(--primary);
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
     .choice-pill {
       display: inline-flex;
       align-items: center;
@@ -446,6 +467,47 @@
       background: var(--primary);
       border-color: var(--primary);
       color: #fff;
+      box-shadow: 0 6px 12px rgba(9, 47, 87, 0.12);
+    }
+
+    .overall-section {
+      margin-top: 28px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .overall-title {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .rating-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .star-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      min-width: 60px;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .star-btn.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
       box-shadow: 0 6px 12px rgba(9, 47, 87, 0.12);
     }
 
@@ -676,7 +738,10 @@
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
       FEEDBACK_TEXT: ['Individual Feeback', 'Individual Feedback', 'Feedback', 'Feedback Choice', 'Feedback Option'],
-      FEEDBACK_STUDENT_LINK: ['Students', 'Student', 'Student Link']
+      FEEDBACK_STUDENT_LINK: ['Students', 'Student', 'Student Link'],
+      FEEDBACK_COMMENT: ['Comment', 'Comments', 'Overall Comment'],
+      FEEDBACK_RATING: ['Rating', 'Overall Rating'],
+      FEEDBACK_HOMEWORK_NAME: ['Homework Name']
     };
 
     const RESPONSE_OPTIONS = [
@@ -694,12 +759,18 @@
       history: [], // Array of feedback records
       currentUser: null, // { id, name, email }
       currentAssignment: null, // String name
-      responses: {} // For the form
+      responses: {}, // For the form
+      problemComments: {},
+      overallComment: '',
+      overallRating: null
     };
 
     const resolvedFields = {
       feedbackText: Array.isArray(FIELD_NAMES.FEEDBACK_TEXT) ? FIELD_NAMES.FEEDBACK_TEXT[0] : FIELD_NAMES.FEEDBACK_TEXT,
-      feedbackStudentLink: Array.isArray(FIELD_NAMES.FEEDBACK_STUDENT_LINK) ? FIELD_NAMES.FEEDBACK_STUDENT_LINK[0] : FIELD_NAMES.FEEDBACK_STUDENT_LINK
+      feedbackStudentLink: Array.isArray(FIELD_NAMES.FEEDBACK_STUDENT_LINK) ? FIELD_NAMES.FEEDBACK_STUDENT_LINK[0] : FIELD_NAMES.FEEDBACK_STUDENT_LINK,
+      feedbackComment: Array.isArray(FIELD_NAMES.FEEDBACK_COMMENT) ? FIELD_NAMES.FEEDBACK_COMMENT[0] : FIELD_NAMES.FEEDBACK_COMMENT,
+      feedbackRating: Array.isArray(FIELD_NAMES.FEEDBACK_RATING) ? FIELD_NAMES.FEEDBACK_RATING[0] : FIELD_NAMES.FEEDBACK_RATING,
+      feedbackHomeworkName: Array.isArray(FIELD_NAMES.FEEDBACK_HOMEWORK_NAME) ? FIELD_NAMES.FEEDBACK_HOMEWORK_NAME[0] : FIELD_NAMES.FEEDBACK_HOMEWORK_NAME
     };
 
     // Elements
@@ -744,6 +815,9 @@
           const availableKeys = Object.keys(sampleRecords[0].fields || {});
           resolvedFields.feedbackText = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_TEXT, resolvedFields.feedbackText);
           resolvedFields.feedbackStudentLink = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_STUDENT_LINK, resolvedFields.feedbackStudentLink);
+          resolvedFields.feedbackComment = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_COMMENT, resolvedFields.feedbackComment);
+          resolvedFields.feedbackRating = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_RATING, resolvedFields.feedbackRating);
+          resolvedFields.feedbackHomeworkName = pickFirstAvailableKey(availableKeys, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME, resolvedFields.feedbackHomeworkName);
         }
       } catch (err) {
         console.warn('Could not auto-resolve feedback field names from Airtable', err);
@@ -778,8 +852,15 @@
           assignmentMeta.set(assign, {
             name: assign,
             unit: extractFirstAvailable(r.fields, FIELD_NAMES.UNIT),
-            lesson: extractFirstAvailable(r.fields, FIELD_NAMES.LESSON)
+            lesson: extractFirstAvailable(r.fields, FIELD_NAMES.LESSON),
+            homeworkNameId: extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME)
           });
+        }
+
+        // Update homework link if later records contain it
+        const meta = assignmentMeta.get(assign);
+        if (!meta.homeworkNameId) {
+          meta.homeworkNameId = extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME);
         }
 
         if (!map.has(assign)) map.set(assign, []);
@@ -964,22 +1045,14 @@
       const container = document.getElementById('problems-container');
       container.innerHTML = '';
       state.responses = {};
+      state.problemComments = {};
+      state.overallComment = '';
+      state.overallRating = null;
 
       const problems = state.problemsByAssignment.get(assignment) || [];
 
       const grid = document.createElement('div');
       grid.className = 'feedback-grid';
-
-      const scrollContainer = document.querySelector('.main-content');
-      const safeScroll = (target) => {
-        if (!scrollContainer || !target) return;
-
-        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-        const nearBottom = scrollContainer.scrollTop >= maxScroll - 4;
-        if (nearBottom) return;
-
-        target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      };
 
       problems.forEach((p) => {
         const row = document.createElement('div');
@@ -1002,9 +1075,6 @@
           state.responses[p.id] = value;
           row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
           labelEl.classList.add('selected');
-          const nextRow = row.nextElementSibling;
-          if (nextRow) safeScroll(nextRow);
-          else safeScroll(document.getElementById('btn-submit'));
         };
 
         RESPONSE_OPTIONS.forEach(opt => {
@@ -1027,9 +1097,61 @@
         });
 
         grid.appendChild(row);
+
+        const commentWrapper = document.createElement('div');
+        commentWrapper.className = 'feedback-row';
+        const commentCell = document.createElement('div');
+        commentCell.className = 'cell problem-cell';
+        commentCell.style.gridColumn = '1 / -1';
+
+        const commentLabel = document.createElement('label');
+        commentLabel.className = 'comment-label';
+        commentLabel.textContent = 'Questions or comments for this problem (optional)';
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'comment-box';
+        textarea.placeholder = 'Share where you got stuck or any thoughts on this problem...';
+        textarea.oninput = (e) => {
+          state.problemComments[p.id] = e.target.value;
+        };
+
+        commentCell.appendChild(commentLabel);
+        commentCell.appendChild(textarea);
+        commentWrapper.appendChild(commentCell);
+        grid.appendChild(commentWrapper);
       });
 
       container.appendChild(grid);
+
+      const overallSection = document.createElement('div');
+      overallSection.className = 'overall-section';
+      overallSection.innerHTML = `
+        <h3 class="overall-title">Overall reflection</h3>
+        <label class="comment-label" for="overall-comment">How did this homework feel?</label>
+        <textarea id="overall-comment" class="comment-box" placeholder="Share anything that stood out..." required></textarea>
+        <div class="comment-label" style="margin-bottom: 2px;">Overall confidence (0-5 stars)</div>
+        <div id="rating-row" class="rating-row"></div>
+      `;
+      container.appendChild(overallSection);
+
+      const ratingRow = overallSection.querySelector('#rating-row');
+      for (let i = 0; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'star-btn';
+        btn.textContent = `${'★'.repeat(i)}${'☆'.repeat(5 - i)} (${i})`;
+        btn.onclick = () => {
+          state.overallRating = i;
+          overallSection.querySelectorAll('.star-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        };
+        ratingRow.appendChild(btn);
+      }
+
+      const overallCommentInput = overallSection.querySelector('#overall-comment');
+      overallCommentInput.oninput = (e) => {
+        state.overallComment = e.target.value;
+      };
 
       renderMath(grid);
 
@@ -1050,16 +1172,49 @@
         return;
       }
 
+      if (!state.overallComment.trim()) {
+        alert('Please add your overall comment.');
+        return;
+      }
+
+      if (state.overallRating === null) {
+        alert('Please add your overall confidence rating.');
+        return;
+      }
+
       setLoading(true, 'Submitting...');
       try {
-        const records = problems.map(p => ({
+        const assignmentMeta = state.assignments.find(a => a.name === state.currentAssignment);
+        const homeworkNameId = assignmentMeta?.homeworkNameId;
+
+        const records = problems.map(p => {
+          const feedbackLabel = RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label;
+          const commentText = (state.problemComments[p.id] || '').trim();
+          const feedbackText = commentText ? `${feedbackLabel} — ${commentText}` : feedbackLabel;
+
+          return {
+            fields: {
+              [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
+              [FIELD_NAMES.FEEDBACK_PROBLEM_LINK]: [p.id],
+              [resolvedFields.feedbackText]: feedbackText,
+              ...(commentText && resolvedFields.feedbackComment ? { [resolvedFields.feedbackComment]: commentText } : {}),
+              ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {}),
+              ...(homeworkNameId && resolvedFields.feedbackHomeworkName ? { [resolvedFields.feedbackHomeworkName]: [homeworkNameId] } : {})
+            }
+          };
+        });
+
+        // Overall reflection record (no Homework Problem link)
+        records.push({
           fields: {
             [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
-            [FIELD_NAMES.FEEDBACK_PROBLEM_LINK]: [p.id],
-            [resolvedFields.feedbackText]: RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label,
-            ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {})
+            [resolvedFields.feedbackComment]: state.overallComment.trim(),
+            [resolvedFields.feedbackRating]: state.overallRating,
+            [resolvedFields.feedbackText]: 'Overall reflection',
+            ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {}),
+            ...(homeworkNameId && resolvedFields.feedbackHomeworkName ? { [resolvedFields.feedbackHomeworkName]: [homeworkNameId] } : {})
           }
-        }));
+        });
 
         // Airtable limits create requests to 10 records. Batch submissions to avoid 422 errors.
         const batchSize = 10;
