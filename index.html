@@ -13,7 +13,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
     crossorigin="anonymous"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       color-scheme: light;
@@ -508,15 +507,6 @@
       <h1 style="color: var(--primary); margin-bottom: 8px;">Math Feedback</h1>
       <p style="color: var(--muted); margin-bottom: 32px;">Sign in to access your assignments</p>
 
-      <!-- Google Sign-In (Hidden for Testing) -->
-      <div id="g_id_onload" hidden
-        data-client_id="728970954163-viap0tnh1lneqrmgdq1jtn5asfuns9cb.apps.googleusercontent.com"
-        data-callback="handleCredentialResponse" data-auto_prompt="false">
-      </div>
-      <div class="g_id_signin" hidden data-type="standard" data-size="large" data-theme="outline"
-        data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="center">
-      </div>
-
       <!-- Manual Test Login -->
       <div class="manual-login">
         <input type="text" id="student-search" placeholder="Search your name..."
@@ -643,7 +633,8 @@
       MATH_CONCEPT: ['Math Concept', 'Concept'],
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
-      FEEDBACK_TEXT: 'Individual Feedback'
+      FEEDBACK_TEXT: 'Individual Feedback',
+      FEEDBACK_STUDENT_LINK: ['Student', 'Student Link']
     };
 
     const RESPONSE_OPTIONS = [
@@ -985,7 +976,8 @@
             fields: {
               [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
               [FIELD_NAMES.FEEDBACK_PROBLEM_LINK]: [p.id],
-              [FIELD_NAMES.FEEDBACK_TEXT]: RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label
+              [FIELD_NAMES.FEEDBACK_TEXT]: RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label,
+              ...(FIELD_NAMES.FEEDBACK_STUDENT_LINK ? { [FIELD_NAMES.FEEDBACK_STUDENT_LINK[0]]: [state.currentUser.id] } : {})
             }
           })),
           typecast: true
@@ -1001,7 +993,7 @@
 
       } catch (e) {
         console.error(e);
-        alert('Error submitting feedback.');
+        alert(`Error submitting feedback: ${e.message}`);
       } finally {
         setLoading(false);
       }
@@ -1135,8 +1127,17 @@
         },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('API Error');
-      return res.json();
+      if (res.ok) return res.json();
+
+      let errorDetail = 'API Error';
+      try {
+        const body = await res.json();
+        if (body?.error?.message) errorDetail = body.error.message;
+      } catch (err) {
+        // Ignore parsing issues and use default error detail
+      }
+
+      throw new Error(errorDetail);
     }
 
     function extractFirstAvailable(fields, keys) {
