@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
+  <meta http-equiv="Permissions-Policy" content="browsing-topics=(), interest-cohort=()" />
   <title>Math Homework Feedback</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -360,11 +360,13 @@
     .feedback-row {
       display: grid;
       grid-template-columns: 1.6fr repeat(4, 1fr);
+      gap: 6px;
       border: 1px solid var(--border);
       border-radius: 10px;
       overflow: hidden;
       background: #fff;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      scroll-margin: 120px 0 120px 0;
     }
 
     .feedback-row + .feedback-row {
@@ -673,8 +675,8 @@
       MATH_CONCEPT: ['Math Concept', 'Concept'],
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
-      FEEDBACK_TEXT: ['Feedback', 'Feedback Choice', 'Feedback Option', 'Individual Feedback'],
-      FEEDBACK_STUDENT_LINK: ['Student', 'Student Link']
+      FEEDBACK_TEXT: ['Individual Feeback', 'Individual Feedback', 'Feedback', 'Feedback Choice', 'Feedback Option'],
+      FEEDBACK_STUDENT_LINK: ['Students', 'Student', 'Student Link']
     };
 
     const RESPONSE_OPTIONS = [
@@ -968,20 +970,6 @@
       const grid = document.createElement('div');
       grid.className = 'feedback-grid';
 
-      const header = document.createElement('div');
-      header.className = 'feedback-row feedback-header';
-      const problemHeader = document.createElement('div');
-      problemHeader.className = 'cell problem-cell';
-      problemHeader.textContent = 'Problem';
-      header.appendChild(problemHeader);
-      RESPONSE_OPTIONS.forEach(opt => {
-        const col = document.createElement('div');
-        col.className = 'cell option-cell';
-        col.textContent = opt.label;
-        header.appendChild(col);
-      });
-      grid.appendChild(header);
-
       problems.forEach((p) => {
         const row = document.createElement('div');
         row.className = 'feedback-row';
@@ -1004,8 +992,8 @@
           row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
           labelEl.classList.add('selected');
           const nextRow = row.nextElementSibling;
-          if (nextRow) nextRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          else document.getElementById('btn-submit').scrollIntoView({ behavior: 'smooth' });
+          if (nextRow) nextRow.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+          else document.getElementById('btn-submit').scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         RESPONSE_OPTIONS.forEach(opt => {
