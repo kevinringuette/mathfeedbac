@@ -774,10 +774,12 @@
       students: [],
       studentLookup: new Map(),
       assignments: [], // Array of { name, unit, lesson }
+      assignmentMeta: new Map(), // name -> { unit, lesson, homeworkNameId }
       problemsByAssignment: new Map(),
       history: [], // Array of feedback records
       currentUser: null, // { id, name, email }
       currentAssignment: null, // String name
+      currentUnit: null,
       responses: {}, // For the form
       problemComments: {},
       overallComment: '',
@@ -907,6 +909,8 @@
         return a.name.localeCompare(b.name);
       });
 
+      state.assignmentMeta = assignmentMeta;
+
       // Sort problems
       for (const [k, list] of map) {
         list.sort((a, b) => {
@@ -929,14 +933,18 @@
         // Find assignment
         let assignment = null;
         let problem = null;
+        let unit = null;
         for (const [a, list] of state.problemsByAssignment) {
           const p = list.find(x => x.id === problemId);
           if (p) { assignment = a; problem = p; break; }
         }
+        const meta = state.assignmentMeta.get(assignment);
+        unit = meta?.unit;
         return {
           id: r.id,
           assignment,
           problem,
+          unit,
           feedback: r.fields[resolvedFields.feedbackText],
           concept: extractFirstAvailable(r.fields, FIELD_NAMES.MATH_CONCEPT)
         };
@@ -1000,6 +1008,16 @@
           uDiv.className = 'sidebar-unit';
           uDiv.textContent = `Unit ${unit}`;
           assignmentList.appendChild(uDiv);
+
+          const overviewLi = document.createElement('li');
+          overviewLi.className = 'assignment-item sidebar-link overview-item';
+          overviewLi.innerHTML = `
+            <span>Overview</span>
+            <span class="status-icon">ℹ️</span>
+          `;
+          overviewLi.onclick = () => selectUnitOverview(unit, overviewLi);
+          assignmentList.appendChild(overviewLi);
+
           lastUnit = unit;
           lastLesson = null; // Reset lesson on new unit
         }
@@ -1015,7 +1033,7 @@
 
         const isDone = submittedSet.has(name);
         const li = document.createElement('li');
-        li.className = 'assignment-item';
+        li.className = 'assignment-item sidebar-link';
         li.innerHTML = `
           <span>${name}</span>
           <span class="status-icon ${isDone ? 'done' : 'pending'}">
@@ -1029,9 +1047,10 @@
 
     function selectAssignment(assignment, element) {
       state.currentAssignment = assignment;
+      state.currentUnit = null;
 
       // Update Sidebar UI
-      document.querySelectorAll('.assignment-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
       if (element) element.classList.add('active');
 
       // Decide View
@@ -1043,6 +1062,17 @@
         renderEmptyState(assignment);
         switchView('empty');
       }
+    }
+
+    function selectUnitOverview(unit, element) {
+      state.currentUnit = unit;
+      state.currentAssignment = null;
+
+      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+      if (element) element.classList.add('active');
+
+      renderUnitOverview(unit);
+      switchView('dashboard');
     }
 
     function switchView(viewName) {
@@ -1269,17 +1299,13 @@
       }
     }
 
-    function renderDashboard(assignment) {
-      document.getElementById('dash-title').textContent = assignment;
-      const historyItems = state.history.filter(h => h.assignment === assignment);
-
-      // Stats
+    function getHistoryStats(historyItems) {
       const stats = { confident: 0, okay: 0, unsure: 0, total: 0 };
       const concepts = new Set();
 
       historyItems.forEach(h => {
         stats.total++;
-        const val = h.feedback.toLowerCase();
+        const val = (h.feedback || '').toLowerCase();
         if (val.includes('confident')) stats.confident++;
         else if (val.includes('okay')) stats.okay++;
         else {
@@ -1288,14 +1314,29 @@
         }
       });
 
-      const pConf = (stats.confident / stats.total) * 100;
-      const pOkay = (stats.okay / stats.total) * 100;
-      const pUnsure = (stats.unsure / stats.total) * 100;
+      const total = Math.max(stats.total, 1); // Avoid division by zero; yields 0% when stats are 0
+      const percentages = {
+        confident: (stats.confident / total) * 100,
+        okay: (stats.okay / total) * 100,
+        unsure: (stats.unsure / total) * 100
+      };
+
+      return { stats, concepts, percentages };
+    }
+
+    function renderDashboard(assignment, options = {}) {
+      const { historyItemsOverride = null, titleOverride = null, showProblems = true } = options;
+      const historyItems = historyItemsOverride || state.history.filter(h => h.assignment === assignment);
+
+      document.getElementById('dash-title').textContent = titleOverride || assignment;
+
+      const { concepts, percentages, stats } = getHistoryStats(historyItems);
 
       document.getElementById('performance-chart').innerHTML = `
-        ${pConf > 0 ? `<div class="bar-segment confident" style="width:${pConf}%">${Math.round(pConf)}%</div>` : ''}
-        ${pOkay > 0 ? `<div class="bar-segment okay" style="width:${pOkay}%">${Math.round(pOkay)}%</div>` : ''}
-        ${pUnsure > 0 ? `<div class="bar-segment unsure" style="width:${pUnsure}%">${Math.round(pUnsure)}%</div>` : ''}
+        ${percentages.confident > 0 ? `<div class="bar-segment confident" style="width:${percentages.confident}%">${Math.round(percentages.confident)}%</div>` : ''}
+        ${percentages.okay > 0 ? `<div class="bar-segment okay" style="width:${percentages.okay}%">${Math.round(percentages.okay)}%</div>` : ''}
+        ${percentages.unsure > 0 ? `<div class="bar-segment unsure" style="width:${percentages.unsure}%">${Math.round(percentages.unsure)}%</div>` : ''}
+        ${stats.total === 0 ? `<div class="bar-segment" style="width:100%; color: var(--muted); background: var(--border);">No feedback yet</div>` : ''}
       `;
 
       // Concepts
@@ -1317,36 +1358,59 @@
       const pContainer = document.getElementById('dashboard-problems');
       pContainer.innerHTML = '';
 
-      // We need to map history back to problems to show them in order
-      // Get the original problems list for order
-      const originalProblems = state.problemsByAssignment.get(assignment) || [];
+      if (showProblems) {
+        const originalProblems = state.problemsByAssignment.get(assignment) || [];
 
-      originalProblems.forEach(p => {
-        const feedbackItem = historyItems.find(h => h.problem.id === p.id);
-        if (!feedbackItem) return;
+        originalProblems.forEach(p => {
+          const feedbackItem = historyItems.find(h => h.problem.id === p.id);
+          if (!feedbackItem) return;
 
-        const div = document.createElement('div');
-        div.className = 'problem-item-view';
+          const div = document.createElement('div');
+          div.className = 'problem-item-view';
 
-        let badgeClass = 'feedback-okay';
-        const txt = feedbackItem.feedback.toLowerCase();
-        if (txt.includes('confident')) badgeClass = 'feedback-confident';
-        if (txt.includes('unsure') || txt.includes('could')) badgeClass = 'feedback-unsure';
+          let badgeClass = 'feedback-okay';
+          const txt = feedbackItem.feedback.toLowerCase();
+          if (txt.includes('confident')) badgeClass = 'feedback-confident';
+          if (txt.includes('unsure') || txt.includes('could')) badgeClass = 'feedback-unsure';
 
-        div.innerHTML = `
-          <div class="problem-header-view">
-            <span class="problem-number">
-                ${p.label} ${p.partLabel || ''}
-                ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
-            </span>
-            <span class="problem-feedback ${badgeClass}">${feedbackItem.feedback}</span>
-          </div>
-          <div class="problem-description">${p.description || ''}</div>
+          div.innerHTML = `
+            <div class="problem-header-view">
+              <span class="problem-number">
+                  ${p.label} ${p.partLabel || ''}
+                  ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
+              </span>
+              <span class="problem-feedback ${badgeClass}">${feedbackItem.feedback}</span>
+            </div>
+            <div class="problem-description">${p.description || ''}</div>
+          `;
+          pContainer.appendChild(div);
+        });
+
+        renderMath(pContainer);
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.border = '1px dashed var(--border)';
+        empty.innerHTML = `
+          <span class="empty-icon">📊</span>
+          <h2 class="empty-title">Unit overview</h2>
+          <p class="empty-desc">Select an assignment from this unit to see the problem breakdown.</p>
         `;
-        pContainer.appendChild(div);
+        pContainer.appendChild(empty);
+      }
+    }
+
+    function renderUnitOverview(unit) {
+      const historyItems = state.history.filter(h => {
+        const itemUnit = h.unit || state.assignmentMeta.get(h.assignment)?.unit;
+        return itemUnit === unit;
       });
 
-      renderMath(pContainer);
+      renderDashboard(`Unit ${unit}`, {
+        historyItemsOverride: historyItems,
+        titleOverride: `Unit ${unit} Overview`,
+        showProblems: false
+      });
     }
 
     // --- Helpers ---
