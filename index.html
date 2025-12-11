@@ -311,6 +311,32 @@
       margin-top: 4px;
     }
 
+    .dash-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .sparkle-icon {
+      font-size: 1.1rem;
+    }
+
     .chart-section {
       margin-bottom: 40px;
     }
@@ -711,6 +737,62 @@
       font-size: 0.9rem;
       display: none;
     }
+
+    /* Analysis Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 300;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      width: min(900px, 100%);
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #f9fbff;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow: auto;
+      line-height: 1.6;
+    }
+
+    .modal-close {
+      border: none;
+      background: transparent;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
   </style>
 </head>
 
@@ -791,6 +873,12 @@
               <h2 class="dash-title" id="dash-title">Assignment Name</h2>
               <p class="dash-meta">Feedback Submitted</p>
             </div>
+            <div class="dash-actions">
+              <button class="btn btn-ghost" id="btn-ai-analysis">
+                <span class="sparkle-icon">✨</span>
+                <span>AI Analysis</span>
+              </button>
+            </div>
           </div>
 
           <div class="dashboard-card">
@@ -842,6 +930,16 @@
     </main>
   </div>
 
+  <div class="modal-overlay" id="analysis-modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="analysis-modal-title">
+      <div class="modal-header">
+        <h3 id="analysis-modal-title">AI Analysis</h3>
+        <button class="modal-close" id="analysis-modal-close" aria-label="Close analysis">✕</button>
+      </div>
+      <div class="modal-body" id="analysis-modal-body"></div>
+    </div>
+  </div>
+
   <script>
     const CONFIG = {
       AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.615a833b9faf447aab9868f45b8818432dc3337bb8a2a5c1ac01689a92488a3a',
@@ -853,6 +951,8 @@
         FEEDBACK: 'tblRNpi8trhwyuPA1'
       }
     };
+
+    const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/6246d2ba-e13b-4cb5-bb57-8c670af85c44';
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -914,6 +1014,11 @@
     const mainContent = document.querySelector('.main-content');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
+    const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
+    const analysisModal = document.getElementById('analysis-modal');
+    const analysisModalBody = document.getElementById('analysis-modal-body');
+    const analysisModalTitle = document.getElementById('analysis-modal-title');
+    const analysisModalClose = document.getElementById('analysis-modal-close');
 
     // Views
     const views = {
@@ -922,6 +1027,11 @@
       upload: document.getElementById('view-upload'),
       dashboard: document.getElementById('view-dashboard')
     };
+
+    analysisModalClose.addEventListener('click', closeAnalysisModal);
+    analysisModal.addEventListener('click', (event) => {
+      if (event.target === analysisModal) closeAnalysisModal();
+    });
 
     document.addEventListener('DOMContentLoaded', init);
 
@@ -1412,6 +1522,79 @@
       }
     }
 
+    function closeAnalysisModal() {
+      analysisModal.classList.remove('active');
+      analysisModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function openAnalysisModal(html, title) {
+      analysisModalBody.innerHTML = html;
+      analysisModalTitle.textContent = title || 'AI Analysis';
+      analysisModal.classList.add('active');
+      analysisModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function buildAnalysisPayload(historyItems, contextInfo) {
+      const { type, assignment, unit, title } = contextInfo;
+      const payload = {
+        context: { type, assignment, unit, title },
+        student: state.currentUser,
+        history: historyItems.map(h => ({
+          id: h.id,
+          assignment: h.assignment,
+          unit: h.unit,
+          lesson: h.lesson,
+          feedback: h.feedback,
+          concept: h.concept,
+          problem: h.problem
+        }))
+      };
+
+      if (type === 'assignment') {
+        payload.assignmentMeta = state.assignmentMeta.get(assignment) || null;
+        payload.problems = (state.problemsByAssignment.get(assignment) || []).map(p => ({
+          id: p.id,
+          label: p.label,
+          description: p.description,
+          partLabel: p.partLabel,
+          concept: p.concept
+        }));
+      }
+
+      if (type === 'unit') {
+        payload.assignments = state.assignments.filter(a => a.unit === unit);
+      }
+
+      return payload;
+    }
+
+    async function requestAnalysis(historyItems, contextInfo) {
+      if (!historyItems.length) {
+        alert('No feedback available to analyze yet.');
+        return;
+      }
+
+      setLoading(true, 'Requesting AI analysis...');
+
+      try {
+        const res = await fetch(ANALYSIS_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildAnalysisPayload(historyItems, contextInfo))
+        });
+
+        if (!res.ok) throw new Error('Unable to fetch AI analysis');
+
+        const html = await res.text();
+        openAnalysisModal(html, contextInfo.title);
+      } catch (err) {
+        console.error(err);
+        alert(`Unable to load AI analysis: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     function getHistoryStats(historyItems) {
       const stats = { confident: 0, okay: 0, unsure: 0, total: 0 };
       const concepts = new Set();
@@ -1456,10 +1639,24 @@
     }
 
     function renderDashboard(assignment, options = {}) {
-      const { historyItemsOverride = null, titleOverride = null, showProblems = true } = options;
+      const { historyItemsOverride = null, titleOverride = null, showProblems = true, contextType = null, unit: unitOverride = null } = options;
       const historyItems = historyItemsOverride || state.history.filter(h => h.assignment === assignment);
+      const resolvedUnit = unitOverride || state.assignmentMeta.get(assignment)?.unit || state.currentUnit;
+      const resolvedTitle = titleOverride || assignment;
+      const resolvedContextType = contextType || (state.currentUnit ? 'unit' : 'assignment');
 
-      document.getElementById('dash-title').textContent = titleOverride || assignment;
+      document.getElementById('dash-title').textContent = resolvedTitle;
+
+      if (aiAnalysisBtn) {
+        aiAnalysisBtn.disabled = historyItems.length === 0;
+        aiAnalysisBtn.title = historyItems.length ? 'Send your records for AI-powered study tips' : 'No feedback to analyze yet';
+        aiAnalysisBtn.onclick = () => requestAnalysis(historyItems, {
+          type: resolvedContextType,
+          assignment: resolvedContextType === 'assignment' ? assignment : null,
+          unit: resolvedUnit,
+          title: resolvedTitle
+        });
+      }
 
       const { concepts, percentages, stats, conceptCounts } = getHistoryStats(historyItems);
 
@@ -1614,7 +1811,9 @@
       renderDashboard(`Unit ${unit}`, {
         historyItemsOverride: historyItems,
         titleOverride: `Unit ${unit} Overview`,
-        showProblems: false
+        showProblems: false,
+        contextType: 'unit',
+        unit
       });
     }
 
