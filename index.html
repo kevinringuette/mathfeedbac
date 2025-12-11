@@ -789,6 +789,18 @@
       margin: 0 0 12px;
       color: var(--muted);
       font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .analysis-loading .spinner-sm {
+      width: 16px;
+      height: 16px;
+      border: 3px solid #d7e3f4;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
     .analysis-frame {
@@ -950,16 +962,19 @@
         <button class="modal-close" id="analysis-modal-close" aria-label="Close analysis">✕</button>
       </div>
       <div class="modal-body" id="analysis-modal-body">
-        <div class="analysis-loading" id="analysis-loading" hidden>Sending records for AI analysis...</div>
+        <div class="analysis-loading" id="analysis-loading" hidden>
+          <span class="spinner-sm" aria-hidden="true"></span>
+          <span id="analysis-loading-text">Sending records for AI analysis...</span>
+        </div>
         <iframe id="analysis-frame" name="analysis-frame" title="AI analysis content" class="analysis-frame" hidden sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
       </div>
     </div>
   </div>
 
   <!-- Cross-origin safe webhook delivery -->
-  <form id="analysis-form" method="POST" target="analysis-frame" style="display: none;">
-    <input type="hidden" name="payload" value="">
-    <input type="hidden" name="meta" value="">
+  <form id="analysis-form" method="POST" target="analysis-frame" style="display: none;" enctype="multipart/form-data" accept-charset="UTF-8">
+    <textarea name="payload" id="analysis-payload" hidden></textarea>
+    <textarea name="meta" id="analysis-meta" hidden></textarea>
   </form>
 
   <script>
@@ -1043,6 +1058,10 @@
     const analysisFrame = document.getElementById('analysis-frame');
     const analysisForm = document.getElementById('analysis-form');
     const analysisLoading = document.getElementById('analysis-loading');
+    const analysisLoadingText = document.getElementById('analysis-loading-text');
+    const analysisPayloadInput = document.getElementById('analysis-payload');
+    const analysisMetaInput = document.getElementById('analysis-meta');
+    let analysisLoadingTimers = [];
 
     // Views
     const views = {
@@ -1062,6 +1081,7 @@
         if (analysisLoading && analysisFrame.dataset.expectingRemote === 'true') {
           analysisLoading.hidden = true;
           analysisFrame.dataset.expectingRemote = 'false';
+          clearAnalysisLoadingTimers();
         }
       });
     }
@@ -1558,6 +1578,7 @@
     function closeAnalysisModal() {
       analysisModal.classList.remove('active');
       analysisModal.setAttribute('aria-hidden', 'true');
+      clearAnalysisLoadingTimers();
       if (analysisFrame) {
         analysisFrame.srcdoc = '';
         analysisFrame.hidden = true;
@@ -1569,15 +1590,21 @@
     }
 
     function openAnalysisModal(title, loadingText = '') {
+      clearAnalysisLoadingTimers();
       if (analysisLoading) {
-        analysisLoading.textContent = loadingText || 'Fetching AI insights...';
+        if (analysisLoadingText) {
+          analysisLoadingText.textContent = loadingText || 'Fetching AI insights...';
+        }
         analysisLoading.hidden = false;
       }
 
       if (analysisFrame) {
         analysisFrame.dataset.expectingRemote = 'false';
         analysisFrame.hidden = false;
-        analysisFrame.srcdoc = `<div style="padding: 24px; font-family: 'Inter', system-ui, sans-serif; color: #1f2933;">${loadingText || 'Loading analysis...'}</div>`;
+        analysisFrame.srcdoc = `<div style="padding: 24px; font-family: 'Inter', system-ui, sans-serif; color: #1f2933; display: flex; align-items: center; gap: 10px;">
+          <span class="spinner" style="width: 20px; height: 20px; border-width: 3px; border-color: #d7e3f4; border-top-color: #092f57;"></span>
+          <span>${loadingText || 'Loading analysis...'}</span>
+        </div>`;
       }
 
       analysisModalTitle.textContent = title || 'AI Analysis';
@@ -1638,11 +1665,8 @@
 
       openAnalysisModal(contextInfo.title, 'Sending your records securely to the AI service...');
 
-      const payloadInput = analysisForm.querySelector('input[name="payload"]');
-      const metaInput = analysisForm.querySelector('input[name="meta"]');
-
-      if (payloadInput) payloadInput.value = payload;
-      if (metaInput) metaInput.value = JSON.stringify({
+      if (analysisPayloadInput) analysisPayloadInput.value = payload;
+      if (analysisMetaInput) analysisMetaInput.value = JSON.stringify({
         title: contextInfo.title,
         type: contextInfo.type,
         unit: contextInfo.unit,
@@ -1657,7 +1681,28 @@
         analysisFrame.dataset.expectingRemote = 'true';
       }
       if (analysisLoading) analysisLoading.hidden = false;
+      if (analysisLoadingText) analysisLoadingText.textContent = 'Sending your records securely to the AI service...';
+
+      clearAnalysisLoadingTimers();
+      analysisLoadingTimers = [
+        setTimeout(() => {
+          if (analysisLoadingText && analysisFrame?.dataset.expectingRemote === 'true') {
+            analysisLoadingText.textContent = 'The AI is still analyzing your work...';
+          }
+        }, 6000),
+        // Provide reassurance if the webhook needs additional processing time
+        setTimeout(() => {
+          if (analysisLoadingText && analysisFrame?.dataset.expectingRemote === 'true') {
+            analysisLoadingText.textContent = 'Still working—this may take a few more seconds as we build your personalized insights.';
+          }
+        }, 15000)
+      ];
       analysisForm.submit();
+    }
+
+    function clearAnalysisLoadingTimers() {
+      analysisLoadingTimers.forEach(t => clearTimeout(t));
+      analysisLoadingTimers = [];
     }
 
     function requestAnalysis(historyItems, contextInfo) {
