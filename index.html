@@ -794,6 +794,45 @@
       gap: 8px;
     }
 
+    .analysis-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+    }
+
+    .analysis-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .analysis-status .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f59e0b;
+      display: inline-block;
+    }
+
+    .analysis-status.ready .status-dot {
+      background: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+    }
+
+    .analysis-status .spinner-sm {
+      width: 14px;
+      height: 14px;
+      border-width: 2px;
+      border-style: solid;
+      border-color: #d7e3f4;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
     .analysis-loading .spinner-sm {
       width: 16px;
       height: 16px;
@@ -801,6 +840,12 @@
       border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.88rem;
+      height: auto;
     }
 
     .analysis-frame {
@@ -903,6 +948,14 @@
                 <span class="sparkle-icon">✨</span>
                 <span>AI Analysis</span>
               </button>
+              <div class="analysis-inline" id="analysis-inline" aria-live="polite">
+                <div class="analysis-status" id="analysis-status" hidden>
+                  <span class="status-dot" aria-hidden="true"></span>
+                  <span class="spinner-sm" aria-hidden="true" hidden></span>
+                  <span id="analysis-status-text">Loading...</span>
+                </div>
+                <button class="btn btn-secondary btn-small" id="btn-view-analysis" hidden>View analysis</button>
+              </div>
             </div>
           </div>
 
@@ -1061,7 +1114,12 @@
     const analysisLoadingText = document.getElementById('analysis-loading-text');
     const analysisPayloadInput = document.getElementById('analysis-payload');
     const analysisMetaInput = document.getElementById('analysis-meta');
+    const analysisInline = document.getElementById('analysis-inline');
+    const analysisStatus = document.getElementById('analysis-status');
+    const analysisStatusText = document.getElementById('analysis-status-text');
+    const viewAnalysisBtn = document.getElementById('btn-view-analysis');
     let analysisLoadingTimers = [];
+    let analysisState = { status: 'idle', contextKey: null, contextTitle: null };
 
     // Views
     const views = {
@@ -1078,10 +1136,8 @@
 
     if (analysisFrame) {
       analysisFrame.addEventListener('load', () => {
-        if (analysisLoading && analysisFrame.dataset.expectingRemote === 'true') {
-          analysisLoading.hidden = true;
-          analysisFrame.dataset.expectingRemote = 'false';
-          clearAnalysisLoadingTimers();
+        if (analysisFrame.dataset.expectingRemote === 'form') {
+          markAnalysisReady();
         }
       });
     }
@@ -1579,37 +1635,99 @@
       analysisModal.classList.remove('active');
       analysisModal.setAttribute('aria-hidden', 'true');
       clearAnalysisLoadingTimers();
-      if (analysisFrame) {
-        analysisFrame.srcdoc = '';
-        analysisFrame.hidden = true;
-        analysisFrame.dataset.expectingRemote = 'false';
-      }
-      if (analysisLoading) {
-        analysisLoading.hidden = true;
-      }
+      if (analysisLoading) analysisLoading.hidden = true;
     }
 
     function openAnalysisModal(title, loadingText = '') {
       clearAnalysisLoadingTimers();
-      if (analysisLoading) {
-        if (analysisLoadingText) {
-          analysisLoadingText.textContent = loadingText || 'Fetching AI insights...';
+      if (analysisState.status === 'ready') {
+        if (analysisLoading) analysisLoading.hidden = true;
+        if (analysisFrame) analysisFrame.hidden = false;
+      } else {
+        if (analysisLoading) {
+          if (analysisLoadingText) {
+            analysisLoadingText.textContent = loadingText || 'Fetching AI insights...';
+          }
+          analysisLoading.hidden = false;
         }
-        analysisLoading.hidden = false;
-      }
 
-      if (analysisFrame) {
-        analysisFrame.dataset.expectingRemote = 'false';
-        analysisFrame.hidden = false;
-        analysisFrame.srcdoc = `<div style="padding: 24px; font-family: 'Inter', system-ui, sans-serif; color: #1f2933; display: flex; align-items: center; gap: 10px;">
+        if (analysisFrame) {
+          analysisFrame.dataset.expectingRemote = 'false';
+          analysisFrame.hidden = false;
+          analysisFrame.srcdoc = `<div style="padding: 24px; font-family: 'Inter', system-ui, sans-serif; color: #1f2933; display: flex; align-items: center; gap: 10px;">
           <span class="spinner" style="width: 20px; height: 20px; border-width: 3px; border-color: #d7e3f4; border-top-color: #092f57;"></span>
           <span>${loadingText || 'Loading analysis...'}</span>
         </div>`;
+        }
       }
 
       analysisModalTitle.textContent = title || 'AI Analysis';
       analysisModal.classList.add('active');
       analysisModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function getAnalysisContextKey(contextInfo) {
+      return `${contextInfo.type || 'assignment'}::${contextInfo.unit || 'unit'}::${contextInfo.assignment || 'all'}`;
+    }
+
+    function setAnalysisInline(message, { ready = false, show = true } = {}) {
+      if (!analysisInline || !analysisStatus || !analysisStatusText) return;
+
+      analysisInline.hidden = !show;
+      if (!show) {
+        if (viewAnalysisBtn) viewAnalysisBtn.hidden = true;
+        return;
+      }
+
+      analysisStatus.hidden = false;
+      analysisStatusText.textContent = message;
+      analysisStatus.classList.toggle('ready', ready);
+      const spinner = analysisStatus.querySelector('.spinner-sm');
+      if (spinner) spinner.hidden = ready;
+      if (viewAnalysisBtn) {
+        viewAnalysisBtn.hidden = !ready;
+        viewAnalysisBtn.disabled = !ready;
+      }
+    }
+
+    function renderAnalysisInlineForContext(contextKey, contextTitle) {
+      if (!analysisInline) return;
+      if (analysisState.contextKey !== contextKey || analysisState.status === 'idle') {
+        setAnalysisInline('', { show: false });
+        return;
+      }
+
+      if (analysisState.status === 'loading') {
+        setAnalysisInline(`Loading analysis for ${contextTitle || 'this lesson'} (may take up to 2 minutes)...`, { ready: false, show: true });
+      } else if (analysisState.status === 'ready') {
+        setAnalysisInline(`Analysis ready for ${contextTitle || 'this lesson'}. Tap "View analysis" to open.`, { ready: true, show: true });
+        if (viewAnalysisBtn) viewAnalysisBtn.onclick = () => openAnalysisModal(contextTitle || 'AI Analysis');
+      }
+    }
+
+    function prepareAnalysisFrameForRequest() {
+      if (analysisFrame) {
+        analysisFrame.hidden = true;
+        analysisFrame.srcdoc = '';
+        analysisFrame.dataset.expectingRemote = 'idle';
+      }
+      if (analysisLoading) analysisLoading.hidden = true;
+      clearAnalysisLoadingTimers();
+    }
+
+    function markAnalysisReady(message) {
+      if (analysisState.status === 'idle') return;
+      analysisState.status = 'ready';
+      if (analysisFrame) {
+        analysisFrame.dataset.expectingRemote = 'ready';
+      }
+      setAnalysisInline(message || `Analysis ready for ${analysisState.contextTitle || 'this lesson'}. Tap "View analysis" to open.`, { ready: true, show: true });
+      if (viewAnalysisBtn) viewAnalysisBtn.onclick = () => openAnalysisModal(analysisState.contextTitle || 'AI Analysis');
+    }
+
+    function handleAnalysisError(message) {
+      analysisState.status = 'idle';
+      setAnalysisInline(message || 'Unable to send analysis request. Please try again.', { show: true, ready: false });
     }
 
     function buildAnalysisPayload(historyItems, contextInfo) {
@@ -1657,13 +1775,12 @@
       return payload;
     }
 
-    function submitAnalysisForm(payload, contextInfo) {
+    function submitAnalysisFormFallback(payload, contextInfo) {
       if (!analysisForm || !analysisFrame) {
         alert('Unable to open AI analysis right now. Please try again later.');
+        handleAnalysisError('Unable to open AI analysis right now.');
         return;
       }
-
-      openAnalysisModal(contextInfo.title, 'Sending your records securely to the AI service...');
 
       if (analysisPayloadInput) analysisPayloadInput.value = payload;
       if (analysisMetaInput) analysisMetaInput.value = JSON.stringify({
@@ -1677,27 +1794,45 @@
 
       analysisForm.action = ANALYSIS_WEBHOOK_URL;
       if (analysisFrame) {
-        analysisFrame.hidden = false;
-        analysisFrame.dataset.expectingRemote = 'true';
+        analysisFrame.dataset.expectingRemote = 'form';
       }
-      if (analysisLoading) analysisLoading.hidden = false;
-      if (analysisLoadingText) analysisLoadingText.textContent = 'Sending your records securely to the AI service...';
+      try {
+        analysisForm.submit();
+      } catch (e) {
+        console.error('Form submission for analysis failed', e);
+        handleAnalysisError('Unable to send analysis request right now.');
+      }
+    }
 
-      clearAnalysisLoadingTimers();
-      analysisLoadingTimers = [
-        setTimeout(() => {
-          if (analysisLoadingText && analysisFrame?.dataset.expectingRemote === 'true') {
-            analysisLoadingText.textContent = 'The AI is still analyzing your work...';
-          }
-        }, 6000),
-        // Provide reassurance if the webhook needs additional processing time
-        setTimeout(() => {
-          if (analysisLoadingText && analysisFrame?.dataset.expectingRemote === 'true') {
-            analysisLoadingText.textContent = 'Still working—this may take a few more seconds as we build your personalized insights.';
-          }
-        }, 15000)
-      ];
-      analysisForm.submit();
+    async function sendAnalysisRequest(payload, contextInfo) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 130000);
+      try {
+        const response = await fetch(ANALYSIS_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          mode: 'cors',
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`Webhook returned ${response.status}`);
+        }
+
+        const html = await response.text();
+        if (analysisFrame) {
+          analysisFrame.srcdoc = html;
+          analysisFrame.hidden = true;
+          analysisFrame.dataset.expectingRemote = 'ready';
+        }
+        markAnalysisReady(`Analysis ready for ${contextInfo.title}.`);
+      } catch (error) {
+        console.warn('Direct analysis request failed, falling back to iframe form.', error);
+        submitAnalysisFormFallback(payload, contextInfo);
+      } finally {
+        clearTimeout(timeoutId);
+      }
     }
 
     function clearAnalysisLoadingTimers() {
@@ -1712,7 +1847,11 @@
       }
 
       const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
-      submitAnalysisForm(payload, contextInfo);
+      const contextKey = getAnalysisContextKey(contextInfo);
+      prepareAnalysisFrameForRequest();
+      analysisState = { status: 'loading', contextKey, contextTitle: contextInfo.title };
+      setAnalysisInline(`Loading analysis for ${contextInfo.title} (may take up to 2 minutes)...`, { ready: false, show: true });
+      sendAnalysisRequest(payload, contextInfo);
     }
 
     function getHistoryStats(historyItems) {
@@ -1764,6 +1903,11 @@
       const resolvedUnit = unitOverride || state.assignmentMeta.get(assignment)?.unit || state.currentUnit;
       const resolvedTitle = titleOverride || assignment;
       const resolvedContextType = contextType || (state.currentUnit ? 'unit' : 'assignment');
+      const contextKey = getAnalysisContextKey({
+        type: resolvedContextType,
+        unit: resolvedUnit,
+        assignment: resolvedContextType === 'assignment' ? assignment : null
+      });
 
       document.getElementById('dash-title').textContent = resolvedTitle;
 
@@ -1777,6 +1921,8 @@
           title: resolvedTitle
         });
       }
+
+      renderAnalysisInlineForContext(contextKey, resolvedTitle);
 
       const { concepts, percentages, stats, conceptCounts } = getHistoryStats(historyItems);
 
