@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Permissions-Policy" content="browsing-topics=(), interest-cohort=()" />
+  <!-- Remove unsupported browsing-topics directive to keep console clean -->
+  <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
   <title>Math Homework Feedback</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -693,6 +694,10 @@
               <h2 class="dash-title" id="dash-title">Assignment Name</h2>
               <p class="dash-meta">Feedback Submitted</p>
             </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="ai-analysis-btn" class="btn btn-secondary">Send AI Analysis</button>
+              <span id="ai-analysis-status" style="color: var(--muted);"></span>
+            </div>
           </div>
 
           <div class="dashboard-card">
@@ -736,6 +741,7 @@
     const CONFIG = {
       AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.615a833b9faf447aab9868f45b8818432dc3337bb8a2a5c1ac01689a92488a3a',
       AIRTABLE_BASE_ID: 'appfGHH0qFz0LKOB4',
+      ANALYSIS_WEBHOOK: 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88',
       GOOGLE_CLIENT_ID: '728970954163-viap0tnh1lneqrmgdq1jtn5asfuns9cb.apps.googleusercontent.com',
       TABLES: {
         STUDENTS: 'tblBcHcI0re70fruS',
@@ -802,6 +808,8 @@
     const mainContent = document.querySelector('.main-content');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
+    const aiAnalysisBtn = document.getElementById('ai-analysis-btn');
+    const aiAnalysisStatus = document.getElementById('ai-analysis-status');
 
     // Views
     const views = {
@@ -820,10 +828,16 @@
         await resolveFeedbackFieldNames();
         setLoading(false);
         setupLogin();
+        setupAnalysis();
       } catch (e) {
         console.error(e);
         alert('Failed to load data. Please refresh.');
       }
+    }
+
+    function setupAnalysis() {
+      if (!aiAnalysisBtn) return;
+      aiAnalysisBtn.onclick = requestAnalysis;
     }
 
     // --- Data Loading ---
@@ -1347,6 +1361,64 @@
       });
 
       renderMath(pContainer);
+    }
+
+    // --- AI Analysis ---
+
+    async function requestAnalysis() {
+      if (!state.currentAssignment || !state.currentUser) {
+        alert('Select an assignment and make sure you are logged in to request analysis.');
+        return;
+      }
+
+      aiAnalysisStatus.textContent = 'Sending...';
+
+      const payload = {
+        assignment: state.currentAssignment,
+        student: state.currentUser,
+        submissions: state.history.filter(h => h.assignment === state.currentAssignment)
+      };
+
+      try {
+        await sendAnalysisRequest(payload);
+        aiAnalysisStatus.textContent = 'Sent for analysis';
+        setTimeout(() => aiAnalysisStatus.textContent = '', 5000);
+      } catch (err) {
+        console.error(err);
+        aiAnalysisStatus.textContent = 'Failed to send';
+        alert(`Could not send analysis request: ${err.message}`);
+      }
+    }
+
+    async function sendAnalysisRequest(payload) {
+      const targets = [
+        { url: CONFIG.ANALYSIS_WEBHOOK, mode: 'no-cors', contentType: 'text/plain' },
+        { url: `https://corsproxy.io/?${encodeURIComponent(CONFIG.ANALYSIS_WEBHOOK)}`, mode: 'cors', contentType: 'application/json' },
+        { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(CONFIG.ANALYSIS_WEBHOOK)}`, mode: 'cors', contentType: 'application/json' }
+      ];
+
+      for (const target of targets) {
+        try {
+          const res = await fetch(target.url, {
+            method: 'POST',
+            mode: target.mode,
+            headers: {
+              'Content-Type': target.contentType
+            },
+            body: JSON.stringify(payload)
+          });
+
+          // Some proxies return opaque responses; treat them as success if no network error occurred.
+          if (res.ok || res.type === 'opaque') {
+            return;
+          }
+          console.warn('Analysis proxy failed', target.url, res.status);
+        } catch (err) {
+          console.warn('Analysis proxy error', target.url, err);
+        }
+      }
+
+      throw new Error('All analysis routes failed.');
     }
 
     // --- Helpers ---
