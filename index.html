@@ -812,7 +812,7 @@
           <div class="spinner"></div>
           <span>Generating analysis...</span>
         </div>
-        <iframe id="ai-modal-iframe" style="display: none;"></iframe>
+        <iframe id="ai-modal-iframe" style="display: none;" sandbox="allow-scripts allow-same-origin"></iframe>
       </div>
     </div>
   </div>
@@ -1683,13 +1683,41 @@
 
     function closeAIModal() {
       aiModalOverlay.classList.remove('active');
-      aiModalIframe.srcdoc = '';
+      // Clean up blob URL
+      if (aiModalIframe._blobUrl) {
+        URL.revokeObjectURL(aiModalIframe._blobUrl);
+        aiModalIframe._blobUrl = null;
+      }
+      aiModalIframe.src = 'about:blank';
     }
 
     function showAIModalContent(htmlContent) {
       aiModalLoading.style.display = 'none';
       aiModalIframe.style.display = 'block';
-      aiModalIframe.srcdoc = htmlContent;
+
+      // Use blob URL for better script execution support
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Clean up previous blob URL if exists
+      if (aiModalIframe._blobUrl) {
+        URL.revokeObjectURL(aiModalIframe._blobUrl);
+      }
+      aiModalIframe._blobUrl = blobUrl;
+
+      aiModalIframe.src = blobUrl;
+
+      // Auto-resize iframe to fit content after load
+      aiModalIframe.onload = function() {
+        try {
+          const doc = aiModalIframe.contentDocument || aiModalIframe.contentWindow.document;
+          const height = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+          aiModalIframe.style.height = Math.max(500, Math.min(height + 40, window.innerHeight * 0.75)) + 'px';
+        } catch (e) {
+          // Cross-origin restrictions - use default height
+          aiModalIframe.style.height = '600px';
+        }
+      };
     }
 
     /**
