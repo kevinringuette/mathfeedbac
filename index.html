@@ -258,6 +258,40 @@
       margin-bottom: 24px;
     }
 
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .stat-help {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
     .dash-header {
       display: flex;
       justify-content: space-between;
@@ -279,6 +313,70 @@
 
     .chart-section {
       margin-bottom: 40px;
+    }
+
+    .lesson-breakdown {
+      margin-top: 8px;
+      margin-bottom: 24px;
+    }
+
+    .lesson-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .lesson-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fdfdfd;
+    }
+
+    .lesson-title {
+      margin: 0 0 6px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .lesson-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .lesson-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--primary-light);
+      border-radius: 999px;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .next-steps {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff7ed;
+    }
+
+    .next-steps h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .next-steps ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      line-height: 1.6;
     }
 
     .bar-chart {
@@ -709,9 +807,21 @@
               </div>
             </div>
 
+            <div id="overall-summary" class="summary-grid"></div>
+
+            <div id="lesson-breakdown" class="lesson-breakdown" hidden>
+              <h3 style="margin-bottom: 10px;">Lesson breakdown</h3>
+              <div id="lesson-list" class="lesson-list"></div>
+            </div>
+
             <div id="concepts-section" hidden>
               <h3 style="color: var(--accent);">Concepts to Review</h3>
               <ul id="concept-list" style="padding-left: 20px; color: var(--text); line-height: 1.6;"></ul>
+            </div>
+
+            <div id="next-steps" class="next-steps" hidden>
+              <h3>Quick wins for next time</h3>
+              <ul id="next-steps-list"></ul>
             </div>
           </div>
 
@@ -934,17 +1044,20 @@
         let assignment = null;
         let problem = null;
         let unit = null;
+        let lesson = null;
         for (const [a, list] of state.problemsByAssignment) {
           const p = list.find(x => x.id === problemId);
           if (p) { assignment = a; problem = p; break; }
         }
         const meta = state.assignmentMeta.get(assignment);
         unit = meta?.unit;
+        lesson = meta?.lesson;
         return {
           id: r.id,
           assignment,
           problem,
           unit,
+          lesson,
           feedback: r.fields[resolvedFields.feedbackText],
           concept: extractFirstAvailable(r.fields, FIELD_NAMES.MATH_CONCEPT)
         };
@@ -1302,6 +1415,7 @@
     function getHistoryStats(historyItems) {
       const stats = { confident: 0, okay: 0, unsure: 0, total: 0 };
       const concepts = new Set();
+      const conceptCounts = new Map();
 
       historyItems.forEach(h => {
         stats.total++;
@@ -1310,7 +1424,10 @@
         else if (val.includes('okay')) stats.okay++;
         else {
           stats.unsure++;
-          if (h.concept) concepts.add(h.concept);
+          if (h.concept) {
+            concepts.add(h.concept);
+            conceptCounts.set(h.concept, (conceptCounts.get(h.concept) || 0) + 1);
+          }
         }
       });
 
@@ -1321,7 +1438,21 @@
         unsure: (stats.unsure / total) * 100
       };
 
-      return { stats, concepts, percentages };
+      return { stats, concepts, conceptCounts, percentages };
+    }
+
+    function buildLessonBreakdown(historyItems) {
+      const grouped = new Map();
+      historyItems.forEach(item => {
+        const lesson = item.lesson || state.assignmentMeta.get(item.assignment)?.lesson;
+        if (!lesson) return;
+        if (!grouped.has(lesson)) grouped.set(lesson, []);
+        grouped.get(lesson).push(item);
+      });
+
+      return Array.from(grouped.entries())
+        .map(([lesson, items]) => ({ lesson, ...getHistoryStats(items) }))
+        .sort((a, b) => (parseInt(a.lesson) || 0) - (parseInt(b.lesson) || 0));
     }
 
     function renderDashboard(assignment, options = {}) {
@@ -1330,7 +1461,7 @@
 
       document.getElementById('dash-title').textContent = titleOverride || assignment;
 
-      const { concepts, percentages, stats } = getHistoryStats(historyItems);
+      const { concepts, percentages, stats, conceptCounts } = getHistoryStats(historyItems);
 
       document.getElementById('performance-chart').innerHTML = `
         ${percentages.confident > 0 ? `<div class="bar-segment confident" style="width:${percentages.confident}%">${Math.round(percentages.confident)}%</div>` : ''}
@@ -1338,6 +1469,52 @@
         ${percentages.unsure > 0 ? `<div class="bar-segment unsure" style="width:${percentages.unsure}%">${Math.round(percentages.unsure)}%</div>` : ''}
         ${stats.total === 0 ? `<div class="bar-segment" style="width:100%; color: var(--muted); background: var(--border);">No feedback yet</div>` : ''}
       `;
+
+      const summary = document.getElementById('overall-summary');
+      summary.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Overall responses</div>
+          <div class="stat-value">${stats.total}</div>
+          <div class="stat-help">Entries counted in this view</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Confident</div>
+          <div class="stat-value">${Math.round(percentages.confident)}%</div>
+          <div class="stat-help">${stats.confident} marked confident</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Needs review</div>
+          <div class="stat-value">${Math.round(percentages.unsure)}%</div>
+          <div class="stat-help">${stats.unsure} struggled responses</div>
+        </div>
+      `;
+
+      const nextSteps = document.getElementById('next-steps');
+      const nextStepsList = document.getElementById('next-steps-list');
+      nextStepsList.innerHTML = '';
+      const suggestions = [];
+      const topConcept = Array.from(conceptCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+      if (stats.unsure > 0 && topConcept) {
+        suggestions.push(`Set aside 10 minutes to reteach yourself <strong>${topConcept}</strong>; it was marked as a struggle most often.`);
+      }
+      if (stats.okay > stats.confident) {
+        suggestions.push('Revisit the "okay" problems and rework them from memory to lock in the steps.');
+      }
+      if (!suggestions.length) {
+        suggestions.push('Great job! Try a mixed practice set covering this unit to keep the momentum.');
+      }
+
+      if (suggestions.length) {
+        nextSteps.hidden = false;
+        suggestions.forEach(text => {
+          const li = document.createElement('li');
+          li.innerHTML = text;
+          nextStepsList.appendChild(li);
+        });
+      } else {
+        nextSteps.hidden = true;
+      }
 
       // Concepts
       const cList = document.getElementById('concept-list');
@@ -1352,6 +1529,34 @@
         });
       } else {
         cSec.hidden = true;
+      }
+
+      const lessonWrapper = document.getElementById('lesson-breakdown');
+      const lessonList = document.getElementById('lesson-list');
+      lessonList.innerHTML = '';
+      if (!showProblems) {
+        const lessonStats = buildLessonBreakdown(historyItems);
+        if (lessonStats.length) {
+          lessonWrapper.hidden = false;
+          lessonStats.forEach(({ lesson, percentages, stats }) => {
+            const card = document.createElement('div');
+            card.className = 'lesson-card';
+            card.innerHTML = `
+              <h4 class="lesson-title">Lesson ${lesson}</h4>
+              <div class="lesson-meta">
+                <span class="lesson-pill">${Math.round(percentages.confident)}% confident</span>
+                <span>Okay: ${Math.round(percentages.okay)}%</span>
+                <span>Struggled: ${Math.round(percentages.unsure)}%</span>
+                <span>${stats.total} responses</span>
+              </div>
+            `;
+            lessonList.appendChild(card);
+          });
+        } else {
+          lessonWrapper.hidden = true;
+        }
+      } else {
+        lessonWrapper.hidden = true;
       }
 
       // Problem List
