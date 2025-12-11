@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Permissions-Policy" content="browsing-topics=(), interest-cohort=()" />
   <title>Math Homework Feedback</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -258,6 +257,40 @@
       margin-bottom: 24px;
     }
 
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .stat-help {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
     .dash-header {
       display: flex;
       justify-content: space-between;
@@ -277,8 +310,98 @@
       margin-top: 4px;
     }
 
+    .dash-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .sparkle-icon {
+      font-size: 1.1rem;
+    }
+
     .chart-section {
       margin-bottom: 40px;
+    }
+
+    .lesson-breakdown {
+      margin-top: 8px;
+      margin-bottom: 24px;
+    }
+
+    .lesson-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .lesson-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fdfdfd;
+    }
+
+    .lesson-title {
+      margin: 0 0 6px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .lesson-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .lesson-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--primary-light);
+      border-radius: 999px;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .next-steps {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff7ed;
+    }
+
+    .next-steps h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .next-steps ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      line-height: 1.6;
     }
 
     .bar-chart {
@@ -614,177 +737,131 @@
       display: none;
     }
 
-    /* AI Analysis Button */
-    .btn-ai {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
-      display: inline-flex;
+    /* Analysis Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 300;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      width: min(900px, 100%);
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #f9fbff;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow: auto;
+      line-height: 1.6;
+    }
+
+    .analysis-loading {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .btn-ai:hover {
-      background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
-      transform: translateY(-1px);
+    .analysis-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
     }
 
-    .btn-ai:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
+    .analysis-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.92rem;
     }
 
-    .btn-ai .spinner-small {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #fff;
+    .analysis-status .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f59e0b;
+      display: inline-block;
+    }
+
+    .analysis-status.ready .status-dot {
+      background: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+    }
+
+    .analysis-status .spinner-sm {
+      width: 14px;
+      height: 14px;
+      border-width: 2px;
+      border-style: solid;
+      border-color: #d7e3f4;
+      border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
-    /* AI Analysis Modal */
-    .ai-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 300;
-      padding: 20px;
+    .analysis-loading .spinner-sm {
+      width: 16px;
+      height: 16px;
+      border: 3px solid #d7e3f4;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
-    .ai-modal-overlay.active {
-      display: flex;
-    }
-
-    .ai-modal {
-      background: #fff;
-      border-radius: 12px;
-      max-width: 900px;
-      width: 100%;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
-
-    .ai-modal-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .ai-modal-title {
-      margin: 0;
-      font-size: 1.25rem;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .ai-modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--muted);
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-
-    .ai-modal-close:hover {
-      background: var(--border);
-      color: var(--text);
-    }
-
-    .ai-modal-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0;
-    }
-
-    .ai-modal-body iframe {
-      width: 100%;
-      height: 100%;
-      min-height: 500px;
-      border: none;
-    }
-
-    .ai-modal-loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px;
-      gap: 16px;
-      color: var(--muted);
-    }
-
-    /* AI Analysis Status Indicator */
-    .ai-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .btn-small {
       padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.88rem;
+      height: auto;
     }
 
-    .ai-status-badge.pending {
-      background: #fff3e0;
-      color: #ef6c00;
-    }
-
-    .ai-status-badge .spinner-small {
-      width: 14px;
-      height: 14px;
-      border-width: 2px;
-    }
-
-    .ai-status-badge.completed {
-      background: #e8f5e9;
-      color: #2e7d32;
-      cursor: pointer;
-    }
-
-    .ai-status-badge.completed:hover {
-      background: #c8e6c9;
-    }
-
-    .ai-status-badge.error {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    /* Analysis Results Section in Dashboard */
-    .ai-analysis-section {
-      margin-top: 24px;
-      padding: 20px;
+    .analysis-frame {
+      width: 100%;
+      height: 70vh;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      background: #f8fafc;
     }
 
-    .ai-analysis-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .ai-analysis-title {
-      margin: 0;
-      font-size: 1.1rem;
-      color: #5b21b6;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .modal-close {
+      border: none;
+      background: transparent;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--muted);
     }
   </style>
 </head>
@@ -795,26 +872,6 @@
   <div id="loading-overlay">
     <div class="spinner"></div>
     <span id="loading-text">Loading...</span>
-  </div>
-
-  <!-- AI Analysis Modal -->
-  <div id="ai-modal-overlay" class="ai-modal-overlay">
-    <div class="ai-modal">
-      <div class="ai-modal-header">
-        <h3 class="ai-modal-title">
-          <span>AI Learning Analysis</span>
-          <span id="ai-modal-assignment"></span>
-        </h3>
-        <button class="ai-modal-close" id="ai-modal-close">&times;</button>
-      </div>
-      <div class="ai-modal-body" id="ai-modal-body">
-        <div class="ai-modal-loading" id="ai-modal-loading">
-          <div class="spinner"></div>
-          <span>Generating analysis...</span>
-        </div>
-        <iframe id="ai-modal-iframe" style="display: none;" sandbox="allow-scripts allow-same-origin"></iframe>
-      </div>
-    </div>
   </div>
 
   <!-- Login Screen -->
@@ -886,21 +943,20 @@
               <h2 class="dash-title" id="dash-title">Assignment Name</h2>
               <p class="dash-meta">Feedback Submitted</p>
             </div>
-            <button class="btn btn-ai" id="btn-ai-analysis">
-              <span class="btn-ai-icon">AI</span>
-              <span class="btn-ai-text">Get AI Analysis</span>
-            </button>
-          </div>
-
-          <!-- AI Analysis Results Section -->
-          <div id="ai-analysis-section" class="ai-analysis-section" style="display: none;">
-            <div class="ai-analysis-header">
-              <h3 class="ai-analysis-title">
-                <span>AI Learning Analysis</span>
-              </h3>
-              <div id="ai-analysis-status"></div>
+            <div class="dash-actions">
+              <button class="btn btn-ghost" id="btn-ai-analysis">
+                <span class="sparkle-icon">✨</span>
+                <span>AI Analysis</span>
+              </button>
+              <div class="analysis-inline" id="analysis-inline" aria-live="polite">
+                <div class="analysis-status" id="analysis-status" hidden>
+                  <span class="status-dot" aria-hidden="true"></span>
+                  <span class="spinner-sm" aria-hidden="true" hidden></span>
+                  <span id="analysis-status-text">Loading...</span>
+                </div>
+                <button class="btn btn-secondary btn-small" id="btn-view-analysis" hidden>View analysis</button>
+              </div>
             </div>
-            <div id="ai-analysis-content"></div>
           </div>
 
           <div class="dashboard-card">
@@ -917,9 +973,21 @@
               </div>
             </div>
 
+            <div id="overall-summary" class="summary-grid"></div>
+
+            <div id="lesson-breakdown" class="lesson-breakdown" hidden>
+              <h3 style="margin-bottom: 10px;">Lesson breakdown</h3>
+              <div id="lesson-list" class="lesson-list"></div>
+            </div>
+
             <div id="concepts-section" hidden>
               <h3 style="color: var(--accent);">Concepts to Review</h3>
               <ul id="concept-list" style="padding-left: 20px; color: var(--text); line-height: 1.6;"></ul>
+            </div>
+
+            <div id="next-steps" class="next-steps" hidden>
+              <h3>Quick wins for next time</h3>
+              <ul id="next-steps-list"></ul>
             </div>
           </div>
 
@@ -940,6 +1008,28 @@
     </main>
   </div>
 
+  <div class="modal-overlay" id="analysis-modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="analysis-modal-title">
+      <div class="modal-header">
+        <h3 id="analysis-modal-title">AI Analysis</h3>
+        <button class="modal-close" id="analysis-modal-close" aria-label="Close analysis">✕</button>
+      </div>
+      <div class="modal-body" id="analysis-modal-body">
+        <div class="analysis-loading" id="analysis-loading" hidden>
+          <span class="spinner-sm" aria-hidden="true"></span>
+          <span id="analysis-loading-text">Sending records for AI analysis...</span>
+        </div>
+        <iframe id="analysis-frame" name="analysis-frame" title="AI analysis content" class="analysis-frame" hidden sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cross-origin safe webhook delivery -->
+  <form id="analysis-form" method="POST" target="analysis-frame" style="display: none;" enctype="multipart/form-data" accept-charset="UTF-8">
+    <textarea name="payload" id="analysis-payload" hidden></textarea>
+    <textarea name="meta" id="analysis-meta" hidden></textarea>
+  </form>
+
   <script>
     const CONFIG = {
       AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.615a833b9faf447aab9868f45b8818432dc3337bb8a2a5c1ac01689a92488a3a',
@@ -949,10 +1039,10 @@
         STUDENTS: 'tblBcHcI0re70fruS',
         PROBLEMS: 'tblE2IAeKV2TVEjJG',
         FEEDBACK: 'tblRNpi8trhwyuPA1'
-      },
-      // AI Analysis Webhook Configuration
-      AI_WEBHOOK_URL: '' // Set this to your webhook endpoint URL
+      }
     };
+
+    const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -984,16 +1074,16 @@
       students: [],
       studentLookup: new Map(),
       assignments: [], // Array of { name, unit, lesson }
+      assignmentMeta: new Map(), // name -> { unit, lesson, homeworkNameId }
       problemsByAssignment: new Map(),
       history: [], // Array of feedback records
       currentUser: null, // { id, name, email }
       currentAssignment: null, // String name
+      currentUnit: null,
       responses: {}, // For the form
       problemComments: {},
       overallComment: '',
-      overallRating: null,
-      // AI Analysis tracking - supports multiple simultaneous processes per assignment
-      aiAnalyses: new Map() // Map<assignmentName, { status: 'pending'|'completed'|'error', result: string|null, timestamp: Date }>
+      overallRating: null
     };
 
     const resolvedFields = {
@@ -1014,6 +1104,22 @@
     const mainContent = document.querySelector('.main-content');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
+    const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
+    const analysisModal = document.getElementById('analysis-modal');
+    const analysisModalTitle = document.getElementById('analysis-modal-title');
+    const analysisModalClose = document.getElementById('analysis-modal-close');
+    const analysisFrame = document.getElementById('analysis-frame');
+    const analysisForm = document.getElementById('analysis-form');
+    const analysisLoading = document.getElementById('analysis-loading');
+    const analysisLoadingText = document.getElementById('analysis-loading-text');
+    const analysisPayloadInput = document.getElementById('analysis-payload');
+    const analysisMetaInput = document.getElementById('analysis-meta');
+    const analysisInline = document.getElementById('analysis-inline');
+    const analysisStatus = document.getElementById('analysis-status');
+    const analysisStatusText = document.getElementById('analysis-status-text');
+    const viewAnalysisBtn = document.getElementById('btn-view-analysis');
+    let analysisLoadingTimers = [];
+    let analysisState = { status: 'idle', contextKey: null, contextTitle: null };
 
     // Views
     const views = {
@@ -1022,6 +1128,19 @@
       upload: document.getElementById('view-upload'),
       dashboard: document.getElementById('view-dashboard')
     };
+
+    analysisModalClose.addEventListener('click', closeAnalysisModal);
+    analysisModal.addEventListener('click', (event) => {
+      if (event.target === analysisModal) closeAnalysisModal();
+    });
+
+    if (analysisFrame) {
+      analysisFrame.addEventListener('load', () => {
+        if (analysisFrame.dataset.expectingRemote === 'form') {
+          markAnalysisReady();
+        }
+      });
+    }
 
     document.addEventListener('DOMContentLoaded', init);
 
@@ -1119,6 +1238,8 @@
         return a.name.localeCompare(b.name);
       });
 
+      state.assignmentMeta = assignmentMeta;
+
       // Sort problems
       for (const [k, list] of map) {
         list.sort((a, b) => {
@@ -1141,14 +1262,21 @@
         // Find assignment
         let assignment = null;
         let problem = null;
+        let unit = null;
+        let lesson = null;
         for (const [a, list] of state.problemsByAssignment) {
           const p = list.find(x => x.id === problemId);
           if (p) { assignment = a; problem = p; break; }
         }
+        const meta = state.assignmentMeta.get(assignment);
+        unit = meta?.unit;
+        lesson = meta?.lesson;
         return {
           id: r.id,
           assignment,
           problem,
+          unit,
+          lesson,
           feedback: r.fields[resolvedFields.feedbackText],
           concept: extractFirstAvailable(r.fields, FIELD_NAMES.MATH_CONCEPT)
         };
@@ -1212,6 +1340,16 @@
           uDiv.className = 'sidebar-unit';
           uDiv.textContent = `Unit ${unit}`;
           assignmentList.appendChild(uDiv);
+
+          const overviewLi = document.createElement('li');
+          overviewLi.className = 'assignment-item sidebar-link overview-item';
+          overviewLi.innerHTML = `
+            <span>Overview</span>
+            <span class="status-icon">ℹ️</span>
+          `;
+          overviewLi.onclick = () => selectUnitOverview(unit, overviewLi);
+          assignmentList.appendChild(overviewLi);
+
           lastUnit = unit;
           lastLesson = null; // Reset lesson on new unit
         }
@@ -1227,7 +1365,7 @@
 
         const isDone = submittedSet.has(name);
         const li = document.createElement('li');
-        li.className = 'assignment-item';
+        li.className = 'assignment-item sidebar-link';
         li.innerHTML = `
           <span>${name}</span>
           <span class="status-icon ${isDone ? 'done' : 'pending'}">
@@ -1241,9 +1379,10 @@
 
     function selectAssignment(assignment, element) {
       state.currentAssignment = assignment;
+      state.currentUnit = null;
 
       // Update Sidebar UI
-      document.querySelectorAll('.assignment-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
       if (element) element.classList.add('active');
 
       // Decide View
@@ -1255,6 +1394,17 @@
         renderEmptyState(assignment);
         switchView('empty');
       }
+    }
+
+    function selectUnitOverview(unit, element) {
+      state.currentUnit = unit;
+      state.currentAssignment = null;
+
+      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+      if (element) element.classList.add('active');
+
+      renderUnitOverview(unit);
+      switchView('dashboard');
     }
 
     function switchView(viewName) {
@@ -1481,34 +1631,397 @@
       }
     }
 
-    function renderDashboard(assignment) {
-      document.getElementById('dash-title').textContent = assignment;
-      const historyItems = state.history.filter(h => h.assignment === assignment);
+    function closeAnalysisModal() {
+      analysisModal.classList.remove('active');
+      analysisModal.setAttribute('aria-hidden', 'true');
+      clearAnalysisLoadingTimers();
+      if (analysisLoading) analysisLoading.hidden = true;
+    }
 
-      // Stats
+    function openAnalysisModal(title, loadingText = '') {
+      clearAnalysisLoadingTimers();
+      if (analysisState.status === 'ready') {
+        if (analysisLoading) analysisLoading.hidden = true;
+        if (analysisFrame) analysisFrame.hidden = false;
+      } else {
+        if (analysisLoading) {
+          if (analysisLoadingText) {
+            analysisLoadingText.textContent = loadingText || 'Fetching AI insights...';
+          }
+          analysisLoading.hidden = false;
+        }
+
+        if (analysisFrame) {
+          analysisFrame.dataset.expectingRemote = 'false';
+          analysisFrame.hidden = false;
+          analysisFrame.srcdoc = `<div style="padding: 24px; font-family: 'Inter', system-ui, sans-serif; color: #1f2933; display: flex; align-items: center; gap: 10px;">
+          <span class="spinner" style="width: 20px; height: 20px; border-width: 3px; border-color: #d7e3f4; border-top-color: #092f57;"></span>
+          <span>${loadingText || 'Loading analysis...'}</span>
+        </div>`;
+        }
+      }
+
+      analysisModalTitle.textContent = title || 'AI Analysis';
+      analysisModal.classList.add('active');
+      analysisModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function getAnalysisContextKey(contextInfo) {
+      return `${contextInfo.type || 'assignment'}::${contextInfo.unit || 'unit'}::${contextInfo.assignment || 'all'}`;
+    }
+
+    function setAnalysisInline(message, { ready = false, show = true } = {}) {
+      if (!analysisInline || !analysisStatus || !analysisStatusText) return;
+
+      analysisInline.hidden = !show;
+      if (!show) {
+        if (viewAnalysisBtn) viewAnalysisBtn.hidden = true;
+        return;
+      }
+
+      analysisStatus.hidden = false;
+      analysisStatusText.textContent = message;
+      analysisStatus.classList.toggle('ready', ready);
+      const spinner = analysisStatus.querySelector('.spinner-sm');
+      if (spinner) spinner.hidden = ready;
+      if (viewAnalysisBtn) {
+        viewAnalysisBtn.hidden = !ready;
+        viewAnalysisBtn.disabled = !ready;
+      }
+    }
+
+    function renderAnalysisInlineForContext(contextKey, contextTitle) {
+      if (!analysisInline) return;
+      if (analysisState.contextKey !== contextKey || analysisState.status === 'idle') {
+        setAnalysisInline('', { show: false });
+        return;
+      }
+
+      if (analysisState.status === 'loading') {
+        setAnalysisInline(`Loading analysis for ${contextTitle || 'this lesson'} (may take up to 2 minutes)...`, { ready: false, show: true });
+      } else if (analysisState.status === 'ready') {
+        setAnalysisInline(`Analysis ready for ${contextTitle || 'this lesson'}. Tap "View analysis" to open.`, { ready: true, show: true });
+        if (viewAnalysisBtn) viewAnalysisBtn.onclick = () => openAnalysisModal(contextTitle || 'AI Analysis');
+      }
+    }
+
+    function prepareAnalysisFrameForRequest() {
+      if (analysisFrame) {
+        analysisFrame.hidden = true;
+        analysisFrame.srcdoc = '';
+        analysisFrame.dataset.expectingRemote = 'idle';
+      }
+      if (analysisLoading) analysisLoading.hidden = true;
+      clearAnalysisLoadingTimers();
+    }
+
+    function markAnalysisReady(message) {
+      if (analysisState.status === 'idle') return;
+      analysisState.status = 'ready';
+      if (analysisFrame) {
+        analysisFrame.dataset.expectingRemote = 'ready';
+      }
+      setAnalysisInline(message || `Analysis ready for ${analysisState.contextTitle || 'this lesson'}. Tap "View analysis" to open.`, { ready: true, show: true });
+      if (viewAnalysisBtn) viewAnalysisBtn.onclick = () => openAnalysisModal(analysisState.contextTitle || 'AI Analysis');
+    }
+
+    function handleAnalysisError(message) {
+      analysisState.status = 'idle';
+      setAnalysisInline(message || 'Unable to send analysis request. Please try again.', { show: true, ready: false });
+    }
+
+    function buildAnalysisPayload(historyItems, contextInfo) {
+      const { type, assignment, unit, title } = contextInfo;
+      const performance = getHistoryStats(historyItems);
+      const relatedAssignments = type === 'unit'
+        ? state.assignments.filter(a => a.unit === unit)
+        : state.assignments.filter(a => a.name === assignment);
+
+      const problemsByAssignment = {};
+      relatedAssignments.forEach(a => {
+        problemsByAssignment[a.name] = (state.problemsByAssignment.get(a.name) || []).map(p => ({
+          id: p.id,
+          label: p.label,
+          description: p.description,
+          partLabel: p.partLabel,
+          concept: p.concept
+        }));
+      });
+
+      const payload = {
+        context: { type, assignment, unit, title },
+        student: state.currentUser,
+        performance,
+        lessonBreakdown: buildLessonBreakdown(historyItems),
+        assignments: relatedAssignments,
+        problemsByAssignment,
+        history: historyItems.map(h => ({
+          id: h.id,
+          assignment: h.assignment,
+          unit: h.unit,
+          lesson: h.lesson,
+          feedback: h.feedback,
+          concept: h.concept,
+          problem: h.problem,
+          rawProblemId: h.problem?.id,
+          rawFeedback: h.feedback
+        }))
+      };
+
+      if (type === 'assignment') {
+        payload.assignmentMeta = state.assignmentMeta.get(assignment) || null;
+      }
+
+      return payload;
+    }
+
+    function submitAnalysisFormFallback(payload, contextInfo) {
+      if (!analysisForm || !analysisFrame) {
+        alert('Unable to open AI analysis right now. Please try again later.');
+        handleAnalysisError('Unable to open AI analysis right now.');
+        return;
+      }
+
+      if (analysisPayloadInput) analysisPayloadInput.value = payload;
+      if (analysisMetaInput) analysisMetaInput.value = JSON.stringify({
+        title: contextInfo.title,
+        type: contextInfo.type,
+        unit: contextInfo.unit,
+        assignment: contextInfo.assignment,
+        generatedAt: new Date().toISOString(),
+        source: 'mathfeedbac-dashboard'
+      });
+
+      analysisForm.action = ANALYSIS_WEBHOOK_URL;
+      if (analysisFrame) {
+        analysisFrame.dataset.expectingRemote = 'form';
+      }
+      try {
+        analysisForm.submit();
+      } catch (e) {
+        console.error('Form submission for analysis failed', e);
+        handleAnalysisError('Unable to send analysis request right now.');
+      }
+    }
+
+    /**
+     * Parse webhook response in the specified format:
+     * [{output:[{content:[{type:"output_text", text:"HTML..."}]}]}]
+     * Returns the HTML string or null if parsing fails
+     */
+    function parseWebhookResponse(responseText) {
+      try {
+        // Try to parse as JSON first
+        const data = JSON.parse(responseText);
+
+        // Navigate the nested structure to extract HTML content
+        if (Array.isArray(data) && data.length > 0) {
+          const firstItem = data[0];
+          if (firstItem.output && Array.isArray(firstItem.output)) {
+            for (const outputItem of firstItem.output) {
+              if (outputItem.content && Array.isArray(outputItem.content)) {
+                for (const contentItem of outputItem.content) {
+                  if (contentItem.type === 'output_text' && contentItem.text) {
+                    return contentItem.text;
+                  }
+                }
+              }
+            }
+          }
+        }
+        // If JSON but not expected format, return the original text (might be HTML)
+        return responseText;
+      } catch (e) {
+        // Not JSON, assume it's direct HTML
+        return responseText;
+      }
+    }
+
+    async function sendAnalysisRequest(payload, contextInfo) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 130000);
+      try {
+        const response = await fetch(ANALYSIS_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          mode: 'cors',
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`Webhook returned ${response.status}`);
+        }
+
+        const responseText = await response.text();
+        const html = parseWebhookResponse(responseText);
+
+        if (analysisFrame) {
+          // Use blob URL for better script execution support (e.g., MathJax)
+          const blob = new Blob([html], { type: 'text/html' });
+          const blobUrl = URL.createObjectURL(blob);
+
+          // Clean up previous blob URL if exists
+          if (analysisFrame._blobUrl) {
+            URL.revokeObjectURL(analysisFrame._blobUrl);
+          }
+          analysisFrame._blobUrl = blobUrl;
+          analysisFrame.src = blobUrl;
+          analysisFrame.hidden = true;
+          analysisFrame.dataset.expectingRemote = 'ready';
+        }
+        markAnalysisReady(`Analysis ready for ${contextInfo.title}.`);
+      } catch (error) {
+        console.warn('Direct analysis request failed, falling back to iframe form.', error);
+        submitAnalysisFormFallback(payload, contextInfo);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
+    function clearAnalysisLoadingTimers() {
+      analysisLoadingTimers.forEach(t => clearTimeout(t));
+      analysisLoadingTimers = [];
+    }
+
+    function requestAnalysis(historyItems, contextInfo) {
+      if (!historyItems.length) {
+        alert('No feedback available to analyze yet.');
+        return;
+      }
+
+      const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
+      const contextKey = getAnalysisContextKey(contextInfo);
+      prepareAnalysisFrameForRequest();
+      analysisState = { status: 'loading', contextKey, contextTitle: contextInfo.title };
+      setAnalysisInline(`Loading analysis for ${contextInfo.title} (may take up to 2 minutes)...`, { ready: false, show: true });
+      sendAnalysisRequest(payload, contextInfo);
+    }
+
+    function getHistoryStats(historyItems) {
       const stats = { confident: 0, okay: 0, unsure: 0, total: 0 };
       const concepts = new Set();
+      const conceptCounts = new Map();
 
       historyItems.forEach(h => {
         stats.total++;
-        const val = h.feedback.toLowerCase();
+        const val = (h.feedback || '').toLowerCase();
         if (val.includes('confident')) stats.confident++;
         else if (val.includes('okay')) stats.okay++;
         else {
           stats.unsure++;
-          if (h.concept) concepts.add(h.concept);
+          if (h.concept) {
+            concepts.add(h.concept);
+            conceptCounts.set(h.concept, (conceptCounts.get(h.concept) || 0) + 1);
+          }
         }
       });
 
-      const pConf = (stats.confident / stats.total) * 100;
-      const pOkay = (stats.okay / stats.total) * 100;
-      const pUnsure = (stats.unsure / stats.total) * 100;
+      const total = Math.max(stats.total, 1); // Avoid division by zero; yields 0% when stats are 0
+      const percentages = {
+        confident: (stats.confident / total) * 100,
+        okay: (stats.okay / total) * 100,
+        unsure: (stats.unsure / total) * 100
+      };
+
+      return { stats, concepts, conceptCounts, percentages };
+    }
+
+    function buildLessonBreakdown(historyItems) {
+      const grouped = new Map();
+      historyItems.forEach(item => {
+        const lesson = item.lesson || state.assignmentMeta.get(item.assignment)?.lesson;
+        if (!lesson) return;
+        if (!grouped.has(lesson)) grouped.set(lesson, []);
+        grouped.get(lesson).push(item);
+      });
+
+      return Array.from(grouped.entries())
+        .map(([lesson, items]) => ({ lesson, ...getHistoryStats(items) }))
+        .sort((a, b) => (parseInt(a.lesson) || 0) - (parseInt(b.lesson) || 0));
+    }
+
+    function renderDashboard(assignment, options = {}) {
+      const { historyItemsOverride = null, titleOverride = null, showProblems = true, contextType = null, unit: unitOverride = null } = options;
+      const historyItems = historyItemsOverride || state.history.filter(h => h.assignment === assignment);
+      const resolvedUnit = unitOverride || state.assignmentMeta.get(assignment)?.unit || state.currentUnit;
+      const resolvedTitle = titleOverride || assignment;
+      const resolvedContextType = contextType || (state.currentUnit ? 'unit' : 'assignment');
+      const contextKey = getAnalysisContextKey({
+        type: resolvedContextType,
+        unit: resolvedUnit,
+        assignment: resolvedContextType === 'assignment' ? assignment : null
+      });
+
+      document.getElementById('dash-title').textContent = resolvedTitle;
+
+      if (aiAnalysisBtn) {
+        aiAnalysisBtn.disabled = historyItems.length === 0;
+        aiAnalysisBtn.title = historyItems.length ? 'Send your records for AI-powered study tips' : 'No feedback to analyze yet';
+        aiAnalysisBtn.onclick = () => requestAnalysis(historyItems, {
+          type: resolvedContextType,
+          assignment: resolvedContextType === 'assignment' ? assignment : null,
+          unit: resolvedUnit,
+          title: resolvedTitle
+        });
+      }
+
+      renderAnalysisInlineForContext(contextKey, resolvedTitle);
+
+      const { concepts, percentages, stats, conceptCounts } = getHistoryStats(historyItems);
 
       document.getElementById('performance-chart').innerHTML = `
-        ${pConf > 0 ? `<div class="bar-segment confident" style="width:${pConf}%">${Math.round(pConf)}%</div>` : ''}
-        ${pOkay > 0 ? `<div class="bar-segment okay" style="width:${pOkay}%">${Math.round(pOkay)}%</div>` : ''}
-        ${pUnsure > 0 ? `<div class="bar-segment unsure" style="width:${pUnsure}%">${Math.round(pUnsure)}%</div>` : ''}
+        ${percentages.confident > 0 ? `<div class="bar-segment confident" style="width:${percentages.confident}%">${Math.round(percentages.confident)}%</div>` : ''}
+        ${percentages.okay > 0 ? `<div class="bar-segment okay" style="width:${percentages.okay}%">${Math.round(percentages.okay)}%</div>` : ''}
+        ${percentages.unsure > 0 ? `<div class="bar-segment unsure" style="width:${percentages.unsure}%">${Math.round(percentages.unsure)}%</div>` : ''}
+        ${stats.total === 0 ? `<div class="bar-segment" style="width:100%; color: var(--muted); background: var(--border);">No feedback yet</div>` : ''}
       `;
+
+      const summary = document.getElementById('overall-summary');
+      summary.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Overall responses</div>
+          <div class="stat-value">${stats.total}</div>
+          <div class="stat-help">Entries counted in this view</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Confident</div>
+          <div class="stat-value">${Math.round(percentages.confident)}%</div>
+          <div class="stat-help">${stats.confident} marked confident</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Needs review</div>
+          <div class="stat-value">${Math.round(percentages.unsure)}%</div>
+          <div class="stat-help">${stats.unsure} struggled responses</div>
+        </div>
+      `;
+
+      const nextSteps = document.getElementById('next-steps');
+      const nextStepsList = document.getElementById('next-steps-list');
+      nextStepsList.innerHTML = '';
+      const suggestions = [];
+      const topConcept = Array.from(conceptCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+      if (stats.unsure > 0 && topConcept) {
+        suggestions.push(`Set aside 10 minutes to reteach yourself <strong>${topConcept}</strong>; it was marked as a struggle most often.`);
+      }
+      if (stats.okay > stats.confident) {
+        suggestions.push('Revisit the "okay" problems and rework them from memory to lock in the steps.');
+      }
+      if (!suggestions.length) {
+        suggestions.push('Great job! Try a mixed practice set covering this unit to keep the momentum.');
+      }
+
+      if (suggestions.length) {
+        nextSteps.hidden = false;
+        suggestions.forEach(text => {
+          const li = document.createElement('li');
+          li.innerHTML = text;
+          nextStepsList.appendChild(li);
+        });
+      } else {
+        nextSteps.hidden = true;
+      }
 
       // Concepts
       const cList = document.getElementById('concept-list');
@@ -1525,43 +2038,93 @@
         cSec.hidden = true;
       }
 
+      const lessonWrapper = document.getElementById('lesson-breakdown');
+      const lessonList = document.getElementById('lesson-list');
+      lessonList.innerHTML = '';
+      if (!showProblems) {
+        const lessonStats = buildLessonBreakdown(historyItems);
+        if (lessonStats.length) {
+          lessonWrapper.hidden = false;
+          lessonStats.forEach(({ lesson, percentages, stats }) => {
+            const card = document.createElement('div');
+            card.className = 'lesson-card';
+            card.innerHTML = `
+              <h4 class="lesson-title">Lesson ${lesson}</h4>
+              <div class="lesson-meta">
+                <span class="lesson-pill">${Math.round(percentages.confident)}% confident</span>
+                <span>Okay: ${Math.round(percentages.okay)}%</span>
+                <span>Struggled: ${Math.round(percentages.unsure)}%</span>
+                <span>${stats.total} responses</span>
+              </div>
+            `;
+            lessonList.appendChild(card);
+          });
+        } else {
+          lessonWrapper.hidden = true;
+        }
+      } else {
+        lessonWrapper.hidden = true;
+      }
+
       // Problem List
       const pContainer = document.getElementById('dashboard-problems');
       pContainer.innerHTML = '';
 
-      // We need to map history back to problems to show them in order
-      // Get the original problems list for order
-      const originalProblems = state.problemsByAssignment.get(assignment) || [];
+      if (showProblems) {
+        const originalProblems = state.problemsByAssignment.get(assignment) || [];
 
-      originalProblems.forEach(p => {
-        const feedbackItem = historyItems.find(h => h.problem.id === p.id);
-        if (!feedbackItem) return;
+        originalProblems.forEach(p => {
+          const feedbackItem = historyItems.find(h => h.problem.id === p.id);
+          if (!feedbackItem) return;
 
-        const div = document.createElement('div');
-        div.className = 'problem-item-view';
+          const div = document.createElement('div');
+          div.className = 'problem-item-view';
 
-        let badgeClass = 'feedback-okay';
-        const txt = feedbackItem.feedback.toLowerCase();
-        if (txt.includes('confident')) badgeClass = 'feedback-confident';
-        if (txt.includes('unsure') || txt.includes('could')) badgeClass = 'feedback-unsure';
+          let badgeClass = 'feedback-okay';
+          const txt = feedbackItem.feedback.toLowerCase();
+          if (txt.includes('confident')) badgeClass = 'feedback-confident';
+          if (txt.includes('unsure') || txt.includes('could')) badgeClass = 'feedback-unsure';
 
-        div.innerHTML = `
-          <div class="problem-header-view">
-            <span class="problem-number">
-                ${p.label} ${p.partLabel || ''}
-                ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
-            </span>
-            <span class="problem-feedback ${badgeClass}">${feedbackItem.feedback}</span>
-          </div>
-          <div class="problem-description">${p.description || ''}</div>
+          div.innerHTML = `
+            <div class="problem-header-view">
+              <span class="problem-number">
+                  ${p.label} ${p.partLabel || ''}
+                  ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
+              </span>
+              <span class="problem-feedback ${badgeClass}">${feedbackItem.feedback}</span>
+            </div>
+            <div class="problem-description">${p.description || ''}</div>
+          `;
+          pContainer.appendChild(div);
+        });
+
+        renderMath(pContainer);
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.border = '1px dashed var(--border)';
+        empty.innerHTML = `
+          <span class="empty-icon">📊</span>
+          <h2 class="empty-title">Unit overview</h2>
+          <p class="empty-desc">Select an assignment from this unit to see the problem breakdown.</p>
         `;
-        pContainer.appendChild(div);
+        pContainer.appendChild(empty);
+      }
+    }
+
+    function renderUnitOverview(unit) {
+      const historyItems = state.history.filter(h => {
+        const itemUnit = h.unit || state.assignmentMeta.get(h.assignment)?.unit;
+        return itemUnit === unit;
       });
 
-      renderMath(pContainer);
-
-      // Setup AI analysis button and update UI
-      setupAIAnalysisButton(assignment);
+      renderDashboard(`Unit ${unit}`, {
+        historyItemsOverride: historyItems,
+        titleOverride: `Unit ${unit} Overview`,
+        showProblems: false,
+        contextType: 'unit',
+        unit
+      });
     }
 
     // --- Helpers ---
@@ -1655,345 +2218,6 @@
       if (user) loginUser(user);
       else alert('Email not found in roster.');
     };
-
-    // --- AI Analysis Functions ---
-
-    // Modal elements
-    const aiModalOverlay = document.getElementById('ai-modal-overlay');
-    const aiModalClose = document.getElementById('ai-modal-close');
-    const aiModalAssignment = document.getElementById('ai-modal-assignment');
-    const aiModalBody = document.getElementById('ai-modal-body');
-    const aiModalLoading = document.getElementById('ai-modal-loading');
-    const aiModalIframe = document.getElementById('ai-modal-iframe');
-
-    // Setup modal close handlers
-    aiModalClose.addEventListener('click', closeAIModal);
-    aiModalOverlay.addEventListener('click', (e) => {
-      if (e.target === aiModalOverlay) closeAIModal();
-    });
-
-    function openAIModal(assignment, showLoading = true) {
-      aiModalAssignment.textContent = `- ${assignment}`;
-      if (showLoading) {
-        aiModalLoading.style.display = 'flex';
-        aiModalIframe.style.display = 'none';
-      }
-      aiModalOverlay.classList.add('active');
-    }
-
-    function closeAIModal() {
-      aiModalOverlay.classList.remove('active');
-      // Clean up blob URL
-      if (aiModalIframe._blobUrl) {
-        URL.revokeObjectURL(aiModalIframe._blobUrl);
-        aiModalIframe._blobUrl = null;
-      }
-      aiModalIframe.src = 'about:blank';
-    }
-
-    function showAIModalContent(htmlContent) {
-      aiModalLoading.style.display = 'none';
-      aiModalIframe.style.display = 'block';
-
-      // Use blob URL for better script execution support
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
-
-      // Clean up previous blob URL if exists
-      if (aiModalIframe._blobUrl) {
-        URL.revokeObjectURL(aiModalIframe._blobUrl);
-      }
-      aiModalIframe._blobUrl = blobUrl;
-
-      aiModalIframe.src = blobUrl;
-
-      // Auto-resize iframe to fit content after load
-      aiModalIframe.onload = function() {
-        try {
-          const doc = aiModalIframe.contentDocument || aiModalIframe.contentWindow.document;
-          const height = doc.documentElement.scrollHeight || doc.body.scrollHeight;
-          aiModalIframe.style.height = Math.max(500, Math.min(height + 40, window.innerHeight * 0.75)) + 'px';
-        } catch (e) {
-          // Cross-origin restrictions - use default height
-          aiModalIframe.style.height = '600px';
-        }
-      };
-    }
-
-    /**
-     * Parse webhook response in the specified format:
-     * [
-     *   {
-     *     "output": [
-     *       {
-     *         "id": "...",
-     *         "type": "message",
-     *         "status": "completed",
-     *         "content": [
-     *           {
-     *             "type": "output_text",
-     *             "text": "HTML content here..."
-     *           }
-     *         ],
-     *         "role": "assistant"
-     *       }
-     *     ]
-     *   }
-     * ]
-     */
-    function parseWebhookResponse(response) {
-      try {
-        // Handle if response is already parsed or is a string
-        const data = typeof response === 'string' ? JSON.parse(response) : response;
-
-        // Navigate the nested structure to extract HTML content
-        if (Array.isArray(data) && data.length > 0) {
-          const firstItem = data[0];
-          if (firstItem.output && Array.isArray(firstItem.output)) {
-            for (const outputItem of firstItem.output) {
-              if (outputItem.content && Array.isArray(outputItem.content)) {
-                for (const contentItem of outputItem.content) {
-                  if (contentItem.type === 'output_text' && contentItem.text) {
-                    return {
-                      success: true,
-                      html: contentItem.text,
-                      status: outputItem.status || 'completed'
-                    };
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // If we couldn't find the expected structure, return error
-        return {
-          success: false,
-          error: 'Invalid response format: Could not find output_text content'
-        };
-      } catch (e) {
-        return {
-          success: false,
-          error: `Failed to parse response: ${e.message}`
-        };
-      }
-    }
-
-    /**
-     * Trigger AI analysis for an assignment
-     * This can work in two modes:
-     * 1. Direct webhook call (if CONFIG.AI_WEBHOOK_URL is set)
-     * 2. Manual response handling via handleAIWebhookResponse global function
-     */
-    async function triggerAIAnalysis(assignment) {
-      const btn = document.getElementById('btn-ai-analysis');
-      const btnText = btn.querySelector('.btn-ai-text');
-      const btnIcon = btn.querySelector('.btn-ai-icon');
-
-      // Update button to loading state
-      btn.disabled = true;
-      btnIcon.innerHTML = '<div class="spinner-small"></div>';
-      btnText.textContent = 'Analyzing...';
-
-      // Set pending status
-      state.aiAnalyses.set(assignment, {
-        status: 'pending',
-        result: null,
-        timestamp: new Date()
-      });
-
-      updateAIAnalysisUI(assignment);
-      openAIModal(assignment, true);
-
-      try {
-        // Gather assignment data for the webhook
-        const historyItems = state.history.filter(h => h.assignment === assignment);
-        const problems = state.problemsByAssignment.get(assignment) || [];
-
-        const payload = {
-          assignment: assignment,
-          student: {
-            name: state.currentUser?.name,
-            email: state.currentUser?.email
-          },
-          problems: problems.map(p => ({
-            id: p.id,
-            label: p.label,
-            description: p.description,
-            concept: p.concept,
-            partLabel: p.partLabel
-          })),
-          feedback: historyItems.map(h => ({
-            problemId: h.problem?.id,
-            problemLabel: h.problem?.label,
-            feedback: h.feedback,
-            concept: h.concept
-          }))
-        };
-
-        if (CONFIG.AI_WEBHOOK_URL) {
-          // Direct webhook call
-          const response = await fetch(CONFIG.AI_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            throw new Error(`Webhook returned ${response.status}`);
-          }
-
-          const data = await response.json();
-          handleAIWebhookResponse(data, assignment);
-        } else {
-          // No webhook URL configured - store payload for manual triggering
-          console.log('AI Analysis payload ready. Call handleAIWebhookResponse(response, assignment) with the webhook response.');
-          console.log('Payload:', payload);
-
-          // Store the pending request info globally so it can be resolved manually
-          window._pendingAIAnalysis = {
-            assignment: assignment,
-            payload: payload
-          };
-        }
-      } catch (e) {
-        console.error('AI Analysis error:', e);
-        state.aiAnalyses.set(assignment, {
-          status: 'error',
-          result: null,
-          error: e.message,
-          timestamp: new Date()
-        });
-        updateAIAnalysisUI(assignment);
-        closeAIModal();
-        alert(`Failed to trigger AI analysis: ${e.message}`);
-      } finally {
-        // Reset button state
-        btn.disabled = false;
-        btnIcon.innerHTML = 'AI';
-        btnText.textContent = 'Get AI Analysis';
-      }
-    }
-
-    /**
-     * Global function to handle webhook response
-     * Can be called manually or from a webhook callback
-     * @param {Object|string} response - The webhook response in the specified format
-     * @param {string} [assignment] - Optional assignment name (uses pending analysis if not provided)
-     */
-    window.handleAIWebhookResponse = function(response, assignment) {
-      // If no assignment specified, use the pending one
-      if (!assignment && window._pendingAIAnalysis) {
-        assignment = window._pendingAIAnalysis.assignment;
-      }
-
-      if (!assignment) {
-        console.error('No assignment specified and no pending analysis found');
-        return;
-      }
-
-      const parsed = parseWebhookResponse(response);
-
-      if (parsed.success) {
-        state.aiAnalyses.set(assignment, {
-          status: 'completed',
-          result: parsed.html,
-          timestamp: new Date()
-        });
-
-        // If the modal is open for this assignment, show the content
-        if (aiModalOverlay.classList.contains('active') &&
-            aiModalAssignment.textContent.includes(assignment)) {
-          showAIModalContent(parsed.html);
-        }
-      } else {
-        state.aiAnalyses.set(assignment, {
-          status: 'error',
-          result: null,
-          error: parsed.error,
-          timestamp: new Date()
-        });
-        closeAIModal();
-        alert(`AI Analysis failed: ${parsed.error}`);
-      }
-
-      updateAIAnalysisUI(assignment);
-
-      // Clear pending analysis
-      if (window._pendingAIAnalysis?.assignment === assignment) {
-        delete window._pendingAIAnalysis;
-      }
-    };
-
-    /**
-     * Update the AI analysis section UI in the dashboard
-     */
-    function updateAIAnalysisUI(assignment) {
-      // Only update if we're viewing this assignment
-      if (state.currentAssignment !== assignment) return;
-
-      const section = document.getElementById('ai-analysis-section');
-      const statusEl = document.getElementById('ai-analysis-status');
-      const contentEl = document.getElementById('ai-analysis-content');
-
-      const analysis = state.aiAnalyses.get(assignment);
-
-      if (!analysis) {
-        section.style.display = 'none';
-        return;
-      }
-
-      section.style.display = 'block';
-
-      if (analysis.status === 'pending') {
-        statusEl.innerHTML = `
-          <span class="ai-status-badge pending">
-            <div class="spinner-small" style="border-color: rgba(239, 108, 0, 0.3); border-top-color: #ef6c00;"></div>
-            Analyzing...
-          </span>
-        `;
-        contentEl.innerHTML = '<p style="color: var(--muted); margin: 0;">AI analysis is in progress...</p>';
-      } else if (analysis.status === 'completed') {
-        statusEl.innerHTML = `
-          <span class="ai-status-badge completed" onclick="showSavedAnalysis('${assignment}')">
-            View Full Analysis
-          </span>
-        `;
-        contentEl.innerHTML = '<p style="color: var(--muted); margin: 0;">Analysis complete! Click "View Full Analysis" to see detailed results.</p>';
-      } else if (analysis.status === 'error') {
-        statusEl.innerHTML = `
-          <span class="ai-status-badge error">
-            Analysis Failed
-          </span>
-        `;
-        contentEl.innerHTML = `<p style="color: #c62828; margin: 0;">Error: ${analysis.error || 'Unknown error'}</p>`;
-      }
-    }
-
-    /**
-     * Show a previously saved analysis in the modal
-     */
-    window.showSavedAnalysis = function(assignment) {
-      const analysis = state.aiAnalyses.get(assignment);
-      if (analysis?.status === 'completed' && analysis.result) {
-        openAIModal(assignment, false);
-        showAIModalContent(analysis.result);
-      }
-    };
-
-    /**
-     * Setup AI analysis button click handler
-     * Called from renderDashboard
-     */
-    function setupAIAnalysisButton(assignment) {
-      const btn = document.getElementById('btn-ai-analysis');
-      btn.onclick = () => triggerAIAnalysis(assignment);
-
-      // Update UI based on existing analysis state
-      updateAIAnalysisUI(assignment);
-    }
 
   </script>
 </body>
