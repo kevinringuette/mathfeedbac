@@ -952,8 +952,33 @@
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
-    const ANALYSIS_PRIMARY_PROXY = 'https://proxy.cors.sh/';
-    const ANALYSIS_SECONDARY_PROXY = 'https://thingproxy.freeboard.io/fetch/';
+
+    // Robust CORS proxy chain (ordered fallbacks)
+    const ANALYSIS_PROXIES = [
+      {
+        label: 'direct',
+        buildUrl: (url) => url,
+        headers: {}
+      },
+      {
+        label: 'corsproxy.io',
+        buildUrl: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        headers: { 'x-requested-with': 'mathfeedbac-dashboard' }
+      },
+      {
+        label: 'proxy.cors.sh',
+        buildUrl: (url) => `https://proxy.cors.sh/${url}`,
+        headers: {
+          'x-cors-api-key': 'temp_cors_api_key',
+          'x-requested-with': 'mathfeedbac-dashboard'
+        }
+      },
+      {
+        label: 'thingproxy',
+        buildUrl: (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
+        headers: { 'x-requested-with': 'mathfeedbac-dashboard' }
+      }
+    ];
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -1583,12 +1608,17 @@
     async function sendAnalysisRequest(url, payload, extraHeaders = {}) {
       const response = await fetch(url, {
         method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
         headers: { 'Content-Type': 'application/json', ...extraHeaders },
-        body: payload
+        body: payload,
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer'
       });
 
       if (!response.ok) {
-        throw new Error(`Analysis request failed (${response.status})`);
+        const text = await response.text().catch(() => '');
+        throw new Error(`Analysis request failed (${response.status}) ${text ? `- ${text}` : ''}`);
       }
 
       return response.text();
@@ -1605,32 +1635,17 @@
       const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
 
       try {
-        try {
-          const html = await sendAnalysisRequest(ANALYSIS_WEBHOOK_URL, payload);
-          openAnalysisModal(html, contextInfo.title);
-          return;
-        } catch (err) {
-          console.warn('Direct analysis request failed, trying proxy...', err);
+        for (const proxy of ANALYSIS_PROXIES) {
+          try {
+            const html = await sendAnalysisRequest(proxy.buildUrl(ANALYSIS_WEBHOOK_URL), payload, proxy.headers);
+            openAnalysisModal(html, contextInfo.title);
+            return;
+          } catch (err) {
+            console.warn(`Analysis request failed via ${proxy.label}`, err);
+          }
         }
 
-        try {
-          const html = await sendAnalysisRequest(`${ANALYSIS_PRIMARY_PROXY}${ANALYSIS_WEBHOOK_URL}`, payload, {
-            'x-cors-api-key': 'temp'
-          });
-          openAnalysisModal(html, contextInfo.title);
-          return;
-        } catch (proxyErr) {
-          console.warn('Primary proxy failed, trying secondary...', proxyErr);
-        }
-
-        try {
-          const html = await sendAnalysisRequest(`${ANALYSIS_SECONDARY_PROXY}${ANALYSIS_WEBHOOK_URL}`, payload);
-          openAnalysisModal(html, contextInfo.title);
-          return;
-        } catch (secondaryErr) {
-          console.error(secondaryErr);
-          alert(`Unable to load AI analysis (possible network or CORS issue). Please try again later.`);
-        }
+        alert('Unable to load AI analysis (blocked by CORS/network). Please try again later or contact your teacher.');
       } finally {
         setLoading(false);
       }
