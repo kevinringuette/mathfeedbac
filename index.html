@@ -952,7 +952,8 @@
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
-    const ANALYSIS_PROXY_PREFIX = 'https://corsproxy.io/?';
+    const ANALYSIS_PRIMARY_PROXY = 'https://proxy.cors.sh/';
+    const ANALYSIS_SECONDARY_PROXY = 'https://thingproxy.freeboard.io/fetch/';
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -1536,9 +1537,29 @@
 
     function buildAnalysisPayload(historyItems, contextInfo) {
       const { type, assignment, unit, title } = contextInfo;
+      const performance = getHistoryStats(historyItems);
+      const relatedAssignments = type === 'unit'
+        ? state.assignments.filter(a => a.unit === unit)
+        : state.assignments.filter(a => a.name === assignment);
+
+      const problemsByAssignment = {};
+      relatedAssignments.forEach(a => {
+        problemsByAssignment[a.name] = (state.problemsByAssignment.get(a.name) || []).map(p => ({
+          id: p.id,
+          label: p.label,
+          description: p.description,
+          partLabel: p.partLabel,
+          concept: p.concept
+        }));
+      });
+
       const payload = {
         context: { type, assignment, unit, title },
         student: state.currentUser,
+        performance,
+        lessonBreakdown: buildLessonBreakdown(historyItems),
+        assignments: relatedAssignments,
+        problemsByAssignment,
         history: historyItems.map(h => ({
           id: h.id,
           assignment: h.assignment,
@@ -1546,26 +1567,31 @@
           lesson: h.lesson,
           feedback: h.feedback,
           concept: h.concept,
-          problem: h.problem
+          problem: h.problem,
+          rawProblemId: h.problem?.id,
+          rawFeedback: h.feedback
         }))
       };
 
       if (type === 'assignment') {
         payload.assignmentMeta = state.assignmentMeta.get(assignment) || null;
-        payload.problems = (state.problemsByAssignment.get(assignment) || []).map(p => ({
-          id: p.id,
-          label: p.label,
-          description: p.description,
-          partLabel: p.partLabel,
-          concept: p.concept
-        }));
-      }
-
-      if (type === 'unit') {
-        payload.assignments = state.assignments.filter(a => a.unit === unit);
       }
 
       return payload;
+    }
+
+    async function sendAnalysisRequest(url, payload, extraHeaders = {}) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...extraHeaders },
+        body: payload
+      });
+
+      if (!response.ok) {
+        throw new Error(`Analysis request failed (${response.status})`);
+      }
+
+      return response.text();
     }
 
     async function requestAnalysis(historyItems, contextInfo) {
@@ -1576,39 +1602,33 @@
 
       setLoading(true, 'Requesting AI analysis...');
 
-      try {
-        const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
-        let response = await fetch(ANALYSIS_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
+      const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
 
-        if (!response.ok) {
-          throw new Error(`Analysis request failed (${response.status})`);
+      try {
+        try {
+          const html = await sendAnalysisRequest(ANALYSIS_WEBHOOK_URL, payload);
+          openAnalysisModal(html, contextInfo.title);
+          return;
+        } catch (err) {
+          console.warn('Direct analysis request failed, trying proxy...', err);
         }
 
-        const html = await response.text();
-        openAnalysisModal(html, contextInfo.title);
-      } catch (err) {
-        console.warn('Direct analysis request failed, trying proxy...', err);
         try {
-          const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
-          const proxyUrl = `${ANALYSIS_PROXY_PREFIX}${encodeURIComponent(ANALYSIS_WEBHOOK_URL)}`;
-          const response = await fetch(proxyUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload
+          const html = await sendAnalysisRequest(`${ANALYSIS_PRIMARY_PROXY}${ANALYSIS_WEBHOOK_URL}`, payload, {
+            'x-cors-api-key': 'temp'
           });
-
-          if (!response.ok) {
-            throw new Error(`Proxy analysis request failed (${response.status})`);
-          }
-
-          const html = await response.text();
           openAnalysisModal(html, contextInfo.title);
+          return;
         } catch (proxyErr) {
-          console.error(proxyErr);
+          console.warn('Primary proxy failed, trying secondary...', proxyErr);
+        }
+
+        try {
+          const html = await sendAnalysisRequest(`${ANALYSIS_SECONDARY_PROXY}${ANALYSIS_WEBHOOK_URL}`, payload);
+          openAnalysisModal(html, contextInfo.title);
+          return;
+        } catch (secondaryErr) {
+          console.error(secondaryErr);
           alert(`Unable to load AI analysis (possible network or CORS issue). Please try again later.`);
         }
       } finally {
