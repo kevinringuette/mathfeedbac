@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Permissions-Policy" content="browsing-topics=(), interest-cohort=()" />
   <title>Math Homework Feedback</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -953,6 +952,7 @@
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
+    const ANALYSIS_PROXY_PREFIX = 'https://corsproxy.io/?';
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -1577,19 +1577,40 @@
       setLoading(true, 'Requesting AI analysis...');
 
       try {
-        const res = await fetch(ANALYSIS_WEBHOOK_URL, {
+        const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
+        let response = await fetch(ANALYSIS_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(buildAnalysisPayload(historyItems, contextInfo))
+          body: payload
         });
 
-        if (!res.ok) throw new Error('Unable to fetch AI analysis');
+        if (!response.ok) {
+          throw new Error(`Analysis request failed (${response.status})`);
+        }
 
-        const html = await res.text();
+        const html = await response.text();
         openAnalysisModal(html, contextInfo.title);
       } catch (err) {
-        console.error(err);
-        alert(`Unable to load AI analysis: ${err.message}`);
+        console.warn('Direct analysis request failed, trying proxy...', err);
+        try {
+          const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
+          const proxyUrl = `${ANALYSIS_PROXY_PREFIX}${encodeURIComponent(ANALYSIS_WEBHOOK_URL)}`;
+          const response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload
+          });
+
+          if (!response.ok) {
+            throw new Error(`Proxy analysis request failed (${response.status})`);
+          }
+
+          const html = await response.text();
+          openAnalysisModal(html, contextInfo.title);
+        } catch (proxyErr) {
+          console.error(proxyErr);
+          alert(`Unable to load AI analysis (possible network or CORS issue). Please try again later.`);
+        }
       } finally {
         setLoading(false);
       }
