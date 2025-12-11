@@ -785,6 +785,20 @@
       line-height: 1.6;
     }
 
+    .analysis-loading {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .analysis-frame {
+      width: 100%;
+      height: 70vh;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
     .modal-close {
       border: none;
       background: transparent;
@@ -935,9 +949,18 @@
         <h3 id="analysis-modal-title">AI Analysis</h3>
         <button class="modal-close" id="analysis-modal-close" aria-label="Close analysis">✕</button>
       </div>
-      <div class="modal-body" id="analysis-modal-body"></div>
+      <div class="modal-body" id="analysis-modal-body">
+        <div class="analysis-loading" id="analysis-loading" hidden>Sending records for AI analysis...</div>
+        <iframe id="analysis-frame" name="analysis-frame" title="AI analysis content" class="analysis-frame" hidden sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
     </div>
   </div>
+
+  <!-- Cross-origin safe webhook delivery -->
+  <form id="analysis-form" method="POST" target="analysis-frame" style="display: none;">
+    <input type="hidden" name="payload" value="">
+    <input type="hidden" name="meta" value="">
+  </form>
 
   <script>
     const CONFIG = {
@@ -952,33 +975,6 @@
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
-
-    // Robust CORS proxy chain (ordered fallbacks)
-    const ANALYSIS_PROXIES = [
-      {
-        label: 'direct',
-        buildUrl: (url) => url,
-        headers: {}
-      },
-      {
-        label: 'corsproxy.io',
-        buildUrl: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        headers: { 'x-requested-with': 'mathfeedbac-dashboard' }
-      },
-      {
-        label: 'proxy.cors.sh',
-        buildUrl: (url) => `https://proxy.cors.sh/${url}`,
-        headers: {
-          'x-cors-api-key': 'temp_cors_api_key',
-          'x-requested-with': 'mathfeedbac-dashboard'
-        }
-      },
-      {
-        label: 'thingproxy',
-        buildUrl: (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
-        headers: { 'x-requested-with': 'mathfeedbac-dashboard' }
-      }
-    ];
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -1042,9 +1038,11 @@
     const loadingText = document.getElementById('loading-text');
     const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
     const analysisModal = document.getElementById('analysis-modal');
-    const analysisModalBody = document.getElementById('analysis-modal-body');
     const analysisModalTitle = document.getElementById('analysis-modal-title');
     const analysisModalClose = document.getElementById('analysis-modal-close');
+    const analysisFrame = document.getElementById('analysis-frame');
+    const analysisForm = document.getElementById('analysis-form');
+    const analysisLoading = document.getElementById('analysis-loading');
 
     // Views
     const views = {
@@ -1058,6 +1056,15 @@
     analysisModal.addEventListener('click', (event) => {
       if (event.target === analysisModal) closeAnalysisModal();
     });
+
+    if (analysisFrame) {
+      analysisFrame.addEventListener('load', () => {
+        if (analysisLoading && analysisFrame.dataset.expectingRemote === 'true') {
+          analysisLoading.hidden = true;
+          analysisFrame.dataset.expectingRemote = 'false';
+        }
+      });
+    }
 
     document.addEventListener('DOMContentLoaded', init);
 
@@ -1551,10 +1558,28 @@
     function closeAnalysisModal() {
       analysisModal.classList.remove('active');
       analysisModal.setAttribute('aria-hidden', 'true');
+      if (analysisFrame) {
+        analysisFrame.srcdoc = '';
+        analysisFrame.hidden = true;
+        analysisFrame.dataset.expectingRemote = 'false';
+      }
+      if (analysisLoading) {
+        analysisLoading.hidden = true;
+      }
     }
 
-    function openAnalysisModal(html, title) {
-      analysisModalBody.innerHTML = html;
+    function openAnalysisModal(title, loadingText = '') {
+      if (analysisLoading) {
+        analysisLoading.textContent = loadingText || 'Fetching AI insights...';
+        analysisLoading.hidden = false;
+      }
+
+      if (analysisFrame) {
+        analysisFrame.dataset.expectingRemote = 'false';
+        analysisFrame.hidden = false;
+        analysisFrame.srcdoc = `<div style="padding: 24px; font-family: 'Inter', system-ui, sans-serif; color: #1f2933;">${loadingText || 'Loading analysis...'}</div>`;
+      }
+
       analysisModalTitle.textContent = title || 'AI Analysis';
       analysisModal.classList.add('active');
       analysisModal.setAttribute('aria-hidden', 'false');
@@ -1605,50 +1630,44 @@
       return payload;
     }
 
-    async function sendAnalysisRequest(url, payload, extraHeaders = {}) {
-      const response = await fetch(url, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'omit',
-        headers: { 'Content-Type': 'application/json', ...extraHeaders },
-        body: payload,
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer'
-      });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(`Analysis request failed (${response.status}) ${text ? `- ${text}` : ''}`);
+    function submitAnalysisForm(payload, contextInfo) {
+      if (!analysisForm || !analysisFrame) {
+        alert('Unable to open AI analysis right now. Please try again later.');
+        return;
       }
 
-      return response.text();
+      openAnalysisModal(contextInfo.title, 'Sending your records securely to the AI service...');
+
+      const payloadInput = analysisForm.querySelector('input[name="payload"]');
+      const metaInput = analysisForm.querySelector('input[name="meta"]');
+
+      if (payloadInput) payloadInput.value = payload;
+      if (metaInput) metaInput.value = JSON.stringify({
+        title: contextInfo.title,
+        type: contextInfo.type,
+        unit: contextInfo.unit,
+        assignment: contextInfo.assignment,
+        generatedAt: new Date().toISOString(),
+        source: 'mathfeedbac-dashboard'
+      });
+
+      analysisForm.action = ANALYSIS_WEBHOOK_URL;
+      if (analysisFrame) {
+        analysisFrame.hidden = false;
+        analysisFrame.dataset.expectingRemote = 'true';
+      }
+      if (analysisLoading) analysisLoading.hidden = false;
+      analysisForm.submit();
     }
 
-    async function requestAnalysis(historyItems, contextInfo) {
+    function requestAnalysis(historyItems, contextInfo) {
       if (!historyItems.length) {
         alert('No feedback available to analyze yet.');
         return;
       }
 
-      setLoading(true, 'Requesting AI analysis...');
-
       const payload = JSON.stringify(buildAnalysisPayload(historyItems, contextInfo));
-
-      try {
-        for (const proxy of ANALYSIS_PROXIES) {
-          try {
-            const html = await sendAnalysisRequest(proxy.buildUrl(ANALYSIS_WEBHOOK_URL), payload, proxy.headers);
-            openAnalysisModal(html, contextInfo.title);
-            return;
-          } catch (err) {
-            console.warn(`Analysis request failed via ${proxy.label}`, err);
-          }
-        }
-
-        alert('Unable to load AI analysis (blocked by CORS/network). Please try again later or contact your teacher.');
-      } finally {
-        setLoading(false);
-      }
+      submitAnalysisForm(payload, contextInfo);
     }
 
     function getHistoryStats(historyItems) {
