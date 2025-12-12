@@ -1091,6 +1091,12 @@
     <textarea name="meta" id="analysis-meta" hidden></textarea>
   </form>
 
+  <!-- Formative Feedback iframe and form -->
+  <iframe id="formative-feedback-frame" name="formative-feedback-frame" style="display: none;"></iframe>
+  <form id="formative-feedback-form" method="POST" target="formative-feedback-frame" style="display: none;" accept-charset="UTF-8">
+    <textarea name="payload" id="formative-feedback-payload" hidden></textarea>
+  </form>
+
   <script>
     const CONFIG = {
       AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.615a833b9faf447aab9868f45b8818432dc3337bb8a2a5c1ac01689a92488a3a',
@@ -1099,13 +1105,16 @@
       TABLES: {
         STUDENTS: 'tblBcHcI0re70fruS',
         PROBLEMS: 'tblE2IAeKV2TVEjJG',
-        FEEDBACK: 'tblRNpi8trhwyuPA1',
-        AI_FEEDBACK: 'tblAIFormativeFeedback' // New table for AI-generated feedback
+        FEEDBACK: 'tblRNpi8trhwyuPA1'
+        // AI_FEEDBACK: 'tblAIFormativeFeedback' // Uncomment when you create this table in Airtable
       }
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
     const FORMATIVE_FEEDBACK_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/formative-feedback'; // Update with actual N8N webhook URL
+
+    // Set to true to test with sample data (no N8N required)
+    const USE_SAMPLE_FEEDBACK_DATA = true;
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -2355,57 +2364,144 @@
         }))
       };
 
-      setLoading(true, 'Generating AI feedback... This may take up to 2 minutes.');
+      setLoading(true, 'Generating AI feedback...');
+
+      // Test mode with sample data
+      if (USE_SAMPLE_FEEDBACK_DATA) {
+        setTimeout(() => {
+          const sampleResponse = {
+            student_name: state.currentUser.name,
+            session_title: `Lesson ${lesson} Review`,
+            notes_review: [
+              {
+                sentence: "The slope-intercept form of a line is _____ where m is the slope.",
+                correct_term: "y = mx + b",
+                hint: "Think about the formula we use most often for graphing lines"
+              },
+              {
+                sentence: "To find the slope between two points, we use the formula _____.",
+                correct_term: "rise over run",
+                hint: "Remember: change in y divided by change in x"
+              }
+            ],
+            practice_deck: [
+              {
+                type: "equation_fill",
+                title: "Complete the Equation",
+                tag: "Structure",
+                instruction: "What is the correct form of the point-slope formula?",
+                equation_latex: "y - y_1 = m(x - x_1)",
+                options: [
+                  { value: "y - y₁ = m(x - x₁)", correct: true },
+                  { value: "y + y₁ = m(x + x₁)", correct: false },
+                  { value: "y = mx + b", correct: false }
+                ],
+                feedback_title: "Perfect!",
+                feedback_text: "The point-slope form uses a known point (x₁, y₁) and the slope m to write the equation of a line."
+              },
+              {
+                type: "drill",
+                title: "Practice Problem",
+                tag: "Skill",
+                instruction: "Try this problem step-by-step:",
+                problem_latex: "\\text{Find the equation of a line with slope } 2 \\text{ passing through } (3, 4)",
+                step_by_step_latex: "\\begin{align*} y - y_1 &= m(x - x_1) \\\\ y - 4 &= 2(x - 3) \\\\ y - 4 &= 2x - 6 \\\\ y &= 2x - 2 \\end{align*}",
+                feedback_text: "Remember to substitute the slope and point values into the point-slope form, then simplify to slope-intercept form."
+              }
+            ]
+          };
+
+          // Store in state and render
+          state.aiFeedbackByLesson.set(lessonKey, sampleResponse);
+
+          // Switch to dashboard view
+          document.getElementById('ai-feedback-generate').style.display = 'none';
+          document.getElementById('ai-feedback-dashboard').style.display = 'block';
+          renderFeedbackDashboard(sampleResponse, 'ai-feedback-dashboard');
+
+          setLoading(false);
+        }, 1500); // Simulate network delay
+        return;
+      }
+
+      // Production mode: Use form submission to bypass CORS (same approach as existing AI Analysis)
+      const form = document.getElementById('formative-feedback-form');
+      const payloadInput = document.getElementById('formative-feedback-payload');
+      const iframe = document.getElementById('formative-feedback-frame');
+
+      if (!form || !payloadInput || !iframe) {
+        alert('Form elements not found. Please refresh the page.');
+        setLoading(false);
+        return;
+      }
+
+      // Set up iframe load handler
+      const handleIframeLoad = async () => {
+        try {
+          // Try to read the iframe content
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          const responseText = iframeDoc.body.textContent || iframeDoc.body.innerText;
+
+          let aiResponse;
+          try {
+            aiResponse = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error('Could not parse AI response:', parseError);
+            throw new Error('Invalid response from AI service');
+          }
+
+          // Save to Airtable if table exists
+          if (CONFIG.TABLES.AI_FEEDBACK) {
+            try {
+              await airtableCreate(CONFIG.TABLES.AI_FEEDBACK, {
+                records: [{
+                  fields: {
+                    StudentID: state.currentUser.id,
+                    LessonKey: lessonKey,
+                    Unit: unit,
+                    Lesson: lesson,
+                    FeedbackJSON: JSON.stringify(aiResponse),
+                    CreatedAt: new Date().toISOString()
+                  }
+                }],
+                typecast: true
+              });
+            } catch (dbError) {
+              console.warn('Could not save to database:', dbError);
+            }
+          }
+
+          // Store in state and render
+          state.aiFeedbackByLesson.set(lessonKey, aiResponse);
+
+          // Switch to dashboard view
+          document.getElementById('ai-feedback-generate').style.display = 'none';
+          document.getElementById('ai-feedback-dashboard').style.display = 'block';
+          renderFeedbackDashboard(aiResponse, 'ai-feedback-dashboard');
+
+        } catch (error) {
+          console.error('Error processing AI feedback:', error);
+          alert(`Error processing feedback: ${error.message}. Please try again.`);
+        } finally {
+          setLoading(false);
+          iframe.removeEventListener('load', handleIframeLoad);
+        }
+      };
+
+      // Attach load listener
+      iframe.addEventListener('load', handleIframeLoad);
+
+      // Submit form
+      payloadInput.value = JSON.stringify(payload);
+      form.action = FORMATIVE_FEEDBACK_WEBHOOK_URL;
 
       try {
-        const response = await fetch(FORMATIVE_FEEDBACK_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Webhook returned ${response.status}`);
-        }
-
-        const aiResponse = await response.json();
-
-        // Save to Airtable if table exists
-        if (CONFIG.TABLES.AI_FEEDBACK) {
-          try {
-            await airtableCreate(CONFIG.TABLES.AI_FEEDBACK, {
-              records: [{
-                fields: {
-                  StudentID: state.currentUser.id,
-                  LessonKey: lessonKey,
-                  Unit: unit,
-                  Lesson: lesson,
-                  FeedbackJSON: JSON.stringify(aiResponse),
-                  CreatedAt: new Date().toISOString()
-                }
-              }],
-              typecast: true
-            });
-          } catch (dbError) {
-            console.warn('Could not save to database:', dbError);
-          }
-        }
-
-        // Store in state and render
-        state.aiFeedbackByLesson.set(lessonKey, aiResponse);
-
-        // Switch to dashboard view
-        document.getElementById('ai-feedback-generate').style.display = 'none';
-        document.getElementById('ai-feedback-dashboard').style.display = 'block';
-        renderFeedbackDashboard(aiResponse, 'ai-feedback-dashboard');
-
+        form.submit();
       } catch (error) {
-        console.error('Error generating AI feedback:', error);
-        alert(`Error generating feedback: ${error.message}. Please try again.`);
-      } finally {
+        console.error('Form submission failed:', error);
+        alert('Could not submit request. Please try again.');
         setLoading(false);
+        iframe.removeEventListener('load', handleIframeLoad);
       }
     }
 
