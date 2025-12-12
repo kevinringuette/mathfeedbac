@@ -2360,13 +2360,23 @@
         return;
       }
 
+      // Get homework record ID from assignment metadata
+      const assignmentMetadata = state.assignmentMeta.get(assignmentName);
+      const homeworkNameId = assignmentMetadata?.homeworkNameId;
+
+      // Extract the first record ID if it's an array (linked record field returns array)
+      const homeworkRecordId = Array.isArray(homeworkNameId) ? homeworkNameId[0] : homeworkNameId;
+
+      console.log(`📝 Homework Record ID: ${homeworkRecordId}`);
+
       // Build payload for N8N
       const payload = {
         student_name: state.currentUser.name,
         assignmentMeta: {
           name: assignmentName,
           unit: unit,
-          lesson: lesson
+          lesson: lesson,
+          homework_id: homeworkRecordId
         },
         history: historyItems.map(h => ({
           feedback: h.feedback,
