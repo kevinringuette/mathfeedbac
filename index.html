@@ -1111,10 +1111,10 @@
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
-    const FORMATIVE_FEEDBACK_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/formative-feedback'; // Update with actual N8N webhook URL
+    const FORMATIVE_FEEDBACK_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
 
     // Set to true to test with sample data (no N8N required)
-    const USE_SAMPLE_FEEDBACK_DATA = true;
+    const USE_SAMPLE_FEEDBACK_DATA = false;
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -2442,12 +2442,16 @@
           const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
           const responseText = iframeDoc.body.textContent || iframeDoc.body.innerText;
 
+          console.log('📥 Received response from N8N:', responseText);
+
           let aiResponse;
           try {
             aiResponse = JSON.parse(responseText);
+            console.log('✅ Parsed AI response:', aiResponse);
           } catch (parseError) {
-            console.error('Could not parse AI response:', parseError);
-            throw new Error('Invalid response from AI service');
+            console.error('❌ Could not parse AI response:', parseError);
+            console.error('Response text was:', responseText);
+            throw new Error('Invalid response from AI service. Check console for details.');
           }
 
           // Save to Airtable if table exists
@@ -2492,13 +2496,19 @@
       iframe.addEventListener('load', handleIframeLoad);
 
       // Submit form
-      payloadInput.value = JSON.stringify(payload);
+      const payloadJson = JSON.stringify(payload);
+      payloadInput.value = payloadJson;
       form.action = FORMATIVE_FEEDBACK_WEBHOOK_URL;
+
+      console.log('📤 Sending payload to N8N:', FORMATIVE_FEEDBACK_WEBHOOK_URL);
+      console.log('📦 Payload:', payload);
+      console.log('📋 Payload JSON:', payloadJson);
 
       try {
         form.submit();
+        console.log('✅ Form submitted successfully');
       } catch (error) {
-        console.error('Form submission failed:', error);
+        console.error('❌ Form submission failed:', error);
         alert('Could not submit request. Please try again.');
         setLoading(false);
         iframe.removeEventListener('load', handleIframeLoad);
