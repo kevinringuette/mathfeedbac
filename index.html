@@ -1126,13 +1126,14 @@
       PROBLEM_DESCRIPTION: ['Question Text', 'Prompt', 'Description'],
       PART_LABEL: ['Part Label'],
       MATH_CONCEPT: ['Math Concept', 'Concept'],
+      PROBLEM_HOMEWORK_LINK: ['Homework'], // Link from Problems table to Homework Name table
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
       FEEDBACK_TEXT: ['Individual Feeback', 'Individual Feedback', 'Feedback', 'Feedback Choice', 'Feedback Option'],
       FEEDBACK_STUDENT_LINK: ['Students', 'Student', 'Student Link'],
       FEEDBACK_COMMENT: ['Individual Feeback', 'Individual Feedback', 'Comment', 'Comments', 'Overall Comment'],
       FEEDBACK_RATING: ['Rating', 'Overall Rating'],
-      FEEDBACK_HOMEWORK_NAME: ['Homework Name']
+      FEEDBACK_HOMEWORK_NAME: ['Homework Name'] // Link from Feedback table to Homework Name table
     };
 
     const RESPONSE_OPTIONS = [
@@ -1273,20 +1274,26 @@
         const assign = extractFirstAvailable(r.fields, FIELD_NAMES.ASSIGNMENT_NAME);
         if (!assign) return;
 
+        // Extract homework record ID (linked record field returns array)
+        const homeworkLinkField = extractFirstAvailable(r.fields, FIELD_NAMES.PROBLEM_HOMEWORK_LINK);
+        const homeworkRecordId = Array.isArray(homeworkLinkField) ? homeworkLinkField[0] : homeworkLinkField;
+
         // Store metadata
         if (!assignmentMeta.has(assign)) {
           assignmentMeta.set(assign, {
             name: assign,
             unit: extractFirstAvailable(r.fields, FIELD_NAMES.UNIT),
             lesson: extractFirstAvailable(r.fields, FIELD_NAMES.LESSON),
-            homeworkNameId: extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME)
+            homeworkNameId: homeworkRecordId
           });
+          console.log(`📚 Loaded assignment: ${assign} (Unit ${extractFirstAvailable(r.fields, FIELD_NAMES.UNIT)}, Lesson ${extractFirstAvailable(r.fields, FIELD_NAMES.LESSON)}) - Homework ID: ${homeworkRecordId}`);
         }
 
         // Update homework link if later records contain it
         const meta = assignmentMeta.get(assign);
-        if (!meta.homeworkNameId) {
-          meta.homeworkNameId = extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME);
+        if (!meta.homeworkNameId && homeworkRecordId) {
+          meta.homeworkNameId = homeworkRecordId;
+          console.log(`📚 Updated homework ID for ${assign}: ${homeworkRecordId}`);
         }
 
         if (!map.has(assign)) map.set(assign, []);
@@ -2362,11 +2369,10 @@
 
       // Get homework record ID from assignment metadata
       const assignmentMetadata = state.assignmentMeta.get(assignmentName);
-      const homeworkNameId = assignmentMetadata?.homeworkNameId;
+      const homeworkRecordId = assignmentMetadata?.homeworkNameId;
 
-      // Extract the first record ID if it's an array (linked record field returns array)
-      const homeworkRecordId = Array.isArray(homeworkNameId) ? homeworkNameId[0] : homeworkNameId;
-
+      console.log(`📝 Assignment: ${assignmentName}`);
+      console.log(`📝 Assignment Metadata:`, assignmentMetadata);
       console.log(`📝 Homework Record ID: ${homeworkRecordId}`);
 
       // Build payload for N8N
