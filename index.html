@@ -2447,16 +2447,30 @@
         const responseData = await response.json();
         console.log('📥 Raw response from N8N:', responseData);
 
-        // Parse N8N's nested response format: [{ output: [{ content: [{ text: {...} }] }] }]
+        // Parse N8N's nested response format
+        // Format can be: { output: [{ content: [{ text: {...} }] }] }
+        // Or: [{ output: [{ content: [{ text: {...} }] }] }]
         let aiResponse;
-        if (Array.isArray(responseData) && responseData[0]?.output?.[0]?.content?.[0]?.text) {
-          console.log('📦 Extracting from N8N wrapper format');
+
+        // Try format 1: { output: [...] } (object at top level)
+        if (responseData.output?.[0]?.content?.[0]?.text) {
+          console.log('📦 Extracting from N8N wrapper format (object)');
+          aiResponse = responseData.output[0].content[0].text;
+        }
+        // Try format 2: [{ output: [...] }] (array at top level)
+        else if (Array.isArray(responseData) && responseData[0]?.output?.[0]?.content?.[0]?.text) {
+          console.log('📦 Extracting from N8N wrapper format (array)');
           aiResponse = responseData[0].output[0].content[0].text;
-        } else if (responseData.student_name && (responseData.practice_deck || responseData.notes_review)) {
+        }
+        // Try format 3: Direct data (no wrapper)
+        else if (responseData.student_name && (responseData.practice_deck || responseData.notes_review)) {
           console.log('📦 Data is already in correct format');
           aiResponse = responseData;
-        } else {
+        }
+        // Unrecognized format
+        else {
           console.error('❌ Unrecognized response format:', responseData);
+          console.error('Expected structure with: output[0].content[0].text or direct student_name + practice_deck');
           throw new Error('Unrecognized response format from N8N. Check console for details.');
         }
 
