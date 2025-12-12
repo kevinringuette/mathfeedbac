@@ -2336,11 +2336,24 @@
     }
 
     async function generateAIFeedback(lesson, assignmentName, unit, lessonKey) {
-      // Gather homework history for this lesson
+      // Gather homework history for this specific unit + lesson combination
+      console.log(`🔍 Filtering for Unit ${unit}, Lesson ${lesson}`);
+
       const historyItems = state.history.filter(h => {
+        const itemUnit = h.unit || state.assignmentMeta.get(h.assignment)?.unit;
         const itemLesson = h.lesson || state.assignmentMeta.get(h.assignment)?.lesson;
-        return itemLesson === lesson;
+
+        // Must match BOTH unit and lesson to avoid mixing 3.4 with 4.4, etc.
+        const matches = itemUnit === unit && itemLesson === lesson;
+
+        if (matches) {
+          console.log(`  ✅ Including: ${h.assignment} (Unit ${itemUnit}, Lesson ${itemLesson})`);
+        }
+
+        return matches;
       });
+
+      console.log(`📊 Found ${historyItems.length} feedback items for Unit ${unit}, Lesson ${lesson}`);
 
       if (historyItems.length === 0) {
         alert('No homework feedback found for this lesson. Please submit homework feedback first.');
