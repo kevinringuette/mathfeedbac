@@ -2364,7 +2364,7 @@
         }))
       };
 
-      setLoading(true, 'Generating AI feedback...');
+      setLoading(true, 'Generating AI feedback (this may take 1-2 minutes)...');
 
       // Test mode with sample data
       if (USE_SAMPLE_FEEDBACK_DATA) {
@@ -2424,94 +2424,89 @@
         return;
       }
 
-      // Production mode: Use form submission to bypass CORS (same approach as existing AI Analysis)
-      const form = document.getElementById('formative-feedback-form');
-      const payloadInput = document.getElementById('formative-feedback-payload');
-      const iframe = document.getElementById('formative-feedback-frame');
-
-      if (!form || !payloadInput || !iframe) {
-        alert('Form elements not found. Please refresh the page.');
-        setLoading(false);
-        return;
-      }
-
-      // Set up iframe load handler
-      const handleIframeLoad = async () => {
-        try {
-          // Try to read the iframe content
-          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-          const responseText = iframeDoc.body.textContent || iframeDoc.body.innerText;
-
-          console.log('📥 Received response from N8N:', responseText);
-
-          let aiResponse;
-          try {
-            aiResponse = JSON.parse(responseText);
-            console.log('✅ Parsed AI response:', aiResponse);
-          } catch (parseError) {
-            console.error('❌ Could not parse AI response:', parseError);
-            console.error('Response text was:', responseText);
-            throw new Error('Invalid response from AI service. Check console for details.');
-          }
-
-          // Save to Airtable if table exists
-          if (CONFIG.TABLES.AI_FEEDBACK) {
-            try {
-              await airtableCreate(CONFIG.TABLES.AI_FEEDBACK, {
-                records: [{
-                  fields: {
-                    StudentID: state.currentUser.id,
-                    LessonKey: lessonKey,
-                    Unit: unit,
-                    Lesson: lesson,
-                    FeedbackJSON: JSON.stringify(aiResponse),
-                    CreatedAt: new Date().toISOString()
-                  }
-                }],
-                typecast: true
-              });
-            } catch (dbError) {
-              console.warn('Could not save to database:', dbError);
-            }
-          }
-
-          // Store in state and render
-          state.aiFeedbackByLesson.set(lessonKey, aiResponse);
-
-          // Switch to dashboard view
-          document.getElementById('ai-feedback-generate').style.display = 'none';
-          document.getElementById('ai-feedback-dashboard').style.display = 'block';
-          renderFeedbackDashboard(aiResponse, 'ai-feedback-dashboard');
-
-        } catch (error) {
-          console.error('Error processing AI feedback:', error);
-          alert(`Error processing feedback: ${error.message}. Please try again.`);
-        } finally {
-          setLoading(false);
-          iframe.removeEventListener('load', handleIframeLoad);
-        }
-      };
-
-      // Attach load listener
-      iframe.addEventListener('load', handleIframeLoad);
-
-      // Submit form
-      const payloadJson = JSON.stringify(payload);
-      payloadInput.value = payloadJson;
-      form.action = FORMATIVE_FEEDBACK_WEBHOOK_URL;
-
+      // Production mode: Use fetch to call N8N webhook
       console.log('📤 Sending payload to N8N:', FORMATIVE_FEEDBACK_WEBHOOK_URL);
       console.log('📦 Payload:', payload);
-      console.log('📋 Payload JSON:', payloadJson);
 
       try {
-        form.submit();
-        console.log('✅ Form submitted successfully');
+        // Send to N8N via fetch
+        const response = await fetch(FORMATIVE_FEEDBACK_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ payload: JSON.stringify(payload) })
+        });
+
+        console.log('📥 Response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`N8N returned status ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        console.log('📥 Raw response from N8N:', responseData);
+
+        // Parse N8N's nested response format: [{ output: [{ content: [{ text: {...} }] }] }]
+        let aiResponse;
+        if (Array.isArray(responseData) && responseData[0]?.output?.[0]?.content?.[0]?.text) {
+          console.log('📦 Extracting from N8N wrapper format');
+          aiResponse = responseData[0].output[0].content[0].text;
+        } else if (responseData.student_name && (responseData.practice_deck || responseData.notes_review)) {
+          console.log('📦 Data is already in correct format');
+          aiResponse = responseData;
+        } else {
+          console.error('❌ Unrecognized response format:', responseData);
+          throw new Error('Unrecognized response format from N8N. Check console for details.');
+        }
+
+        console.log('✅ Extracted AI response:', aiResponse);
+
+        // Validate required fields
+        if (!aiResponse.practice_deck && !aiResponse.notes_review) {
+          throw new Error('Response missing practice_deck or notes_review');
+        }
+
+        // Save to Airtable if table exists
+        if (CONFIG.TABLES.AI_FEEDBACK) {
+          try {
+            await airtableCreate(CONFIG.TABLES.AI_FEEDBACK, {
+              records: [{
+                fields: {
+                  StudentID: state.currentUser.id,
+                  LessonKey: lessonKey,
+                  Unit: unit,
+                  Lesson: lesson,
+                  FeedbackJSON: JSON.stringify(aiResponse),
+                  CreatedAt: new Date().toISOString()
+                }
+              }],
+              typecast: true
+            });
+            console.log('💾 Saved to Airtable');
+          } catch (dbError) {
+            console.warn('Could not save to database:', dbError);
+          }
+        }
+
+        // Store in state and render
+        state.aiFeedbackByLesson.set(lessonKey, aiResponse);
+
+        // Switch to dashboard view
+        document.getElementById('ai-feedback-generate').style.display = 'none';
+        document.getElementById('ai-feedback-dashboard').style.display = 'block';
+        renderFeedbackDashboard(aiResponse, 'ai-feedback-dashboard');
+
       } catch (error) {
-        console.error('❌ Form submission failed:', error);
-        alert('Could not submit request. Please try again.');
+        console.error('❌ Error generating AI feedback:', error);
+
+        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+          alert(`CORS Error: Your N8N webhook needs CORS enabled.\n\nIn N8N:\n1. Open your webhook node\n2. Add a "Set" node after the webhook\n3. Set response headers:\n   - Access-Control-Allow-Origin: *\n   - Access-Control-Allow-Methods: POST, OPTIONS\n4. Or use N8N's built-in CORS settings if available`);
+        } else {
+          alert(`Error generating feedback: ${error.message}\n\nCheck the browser console (F12) for details.`);
+        }
+      } finally {
         setLoading(false);
-        iframe.removeEventListener('load', handleIframeLoad);
       }
     }
 
