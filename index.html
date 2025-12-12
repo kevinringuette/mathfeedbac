@@ -2623,6 +2623,7 @@
             if (card.type === 'graph_context') return _cardWrapper(card, _tplGraphContext(card, uid), 'purple', 'Context');
             if (card.type === 'equation_fill') return _cardWrapper(card, _tplEquationFill(card, uid), 'teal', 'Structure');
             if (card.type === 'drill') return _cardWrapper(card, _tplDrill(card, uid), 'emerald', 'Skill');
+            if (card.type === 'mcq') return _cardWrapper(card, _tplMCQ(card, uid), 'indigo', 'Review');
             return '';
         }).join('');
 
@@ -2635,7 +2636,8 @@
             blue: { dot: '#3b82f6', badge: '#dbeafe', badgeText: '#1e40af' },
             purple: { dot: '#a855f7', badge: '#f3e8ff', badgeText: '#6b21a8' },
             teal: { dot: '#14b8a6', badge: '#ccfbf1', badgeText: '#115e59' },
-            emerald: { dot: '#10b981', badge: '#d1fae5', badgeText: '#065f46' }
+            emerald: { dot: '#10b981', badge: '#d1fae5', badgeText: '#065f46' },
+            indigo: { dot: '#6366f1', badge: '#e0e7ff', badgeText: '#4338ca' }
         };
         const c = colors[colorName];
 
@@ -2656,21 +2658,37 @@
 
     function _tplFindError(card, id) {
         const gridCols = card.grid_cols || 2;
-        let grid = `<div style="display: inline-grid; gap: 8px; padding: 12px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; grid-template-columns: repeat(${gridCols}, minmax(0, 1fr));">`;
-        card.grid_values.forEach((val, i) => {
-            const isErr = (i === card.error_index);
-            grid += `<button onclick="_handleGridClick(this, ${isErr}, '${id}-fb')" style="width: 48px; height: 48px; background: white; border-radius: 4px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); font-family: serif; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; font-size: 1.125rem; cursor: pointer;">${val}</button>`;
-        });
-        grid += `</div>`;
+
+        // Detect if this is equation steps (long text) vs matrix values (short)
+        const isEquationSteps = card.grid_values.some(val => val.length > 10 || val.includes('=') || val.includes('\\'));
+
+        let grid;
+        if (isEquationSteps) {
+            // Render as vertical list of equation steps with LaTeX
+            grid = `<div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 300px;">`;
+            card.grid_values.forEach((val, i) => {
+                const isErr = (i === card.error_index);
+                grid += `<button onclick="_handleGridClick(this, ${isErr}, '${id}-fb')" style="width: 100%; min-height: 60px; padding: 12px 16px; background: white; border-radius: 8px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); display: flex; align-items: center; justify-content: center; border: 2px solid #e2e8f0; font-size: 1rem; cursor: pointer; text-align: center; transition: all 0.2s;">$$${val}$$</button>`;
+            });
+            grid += `</div>`;
+        } else {
+            // Render as compact grid for short values (original behavior)
+            grid = `<div style="display: inline-grid; gap: 8px; padding: 12px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; grid-template-columns: repeat(${gridCols}, minmax(0, 1fr));">`;
+            card.grid_values.forEach((val, i) => {
+                const isErr = (i === card.error_index);
+                grid += `<button onclick="_handleGridClick(this, ${isErr}, '${id}-fb')" style="width: 48px; height: 48px; background: white; border-radius: 4px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); font-family: serif; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; font-size: 1.125rem; cursor: pointer;">${val}</button>`;
+            });
+            grid += `</div>`;
+        }
 
         return `
-            <div style="display: flex; flex-direction: row; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: ${isEquationSteps ? 'column' : 'row'}; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap;">
                 <div style="text-align: center; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #f1f5f9;">
                     <div style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Problem</div>
                     <div style="font-size: 1.25rem;">$$${card.problem_latex}$$</div>
                 </div>
-                <div style="font-size: 1.5rem; color: #cbd5e1;">→</div>
-                <div style="text-align: center;">
+                ${isEquationSteps ? '' : '<div style="font-size: 1.5rem; color: #cbd5e1;">→</div>'}
+                <div style="text-align: center; ${isEquationSteps ? 'width: 100%; max-width: 500px;' : ''}">
                     <div style="font-size: 0.75rem; font-weight: 700; color: #f87171; text-transform: uppercase; margin-bottom: 8px;">Student Answer</div>
                     ${grid}
                 </div>
@@ -2751,11 +2769,25 @@
         `;
     }
 
+    function _tplMCQ(card, id) {
+        let btns = `<div style="display: flex; flex-direction: column; gap: 12px; max-width: 600px; margin: 0 auto;">`;
+        card.options.forEach(opt => {
+            btns += `<button onclick="_handleMCQClick(this, ${opt.correct}, '${id}-fb')" class="mcq-btn" style="width: 100%; text-align: left; padding: 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; color: #475569; font-weight: 500; background: white; cursor: pointer; transition: all 0.2s;">${opt.text}</button>`;
+        });
+        btns += `</div>`;
+        return `
+            <p style="margin-bottom: 24px; font-weight: 600; color: #1e293b; font-size: 1.125rem; text-align: center;">${card.question}</p>
+            ${btns}
+            ${_tplFeedback(id, "Explanation", card.feedback_text, 'indigo')}
+        `;
+    }
+
     function _tplFeedback(id, title, text, color) {
         const colorMap = {
             red: { border: '#ef4444', text: '#dc2626' },
             teal: { border: '#14b8a6', text: '#0f766e' },
-            purple: { border: '#a855f7', text: '#7e22ce' }
+            purple: { border: '#a855f7', text: '#7e22ce' },
+            indigo: { border: '#6366f1', text: '#4338ca' }
         };
         const c = colorMap[color] || colorMap.teal;
         return `
@@ -2813,19 +2845,23 @@
 
     function _handleGridClick(btn, isCorrect, fbId) {
         const fb = document.getElementById(fbId);
+
+        // Detect border width (1px for matrix grid, 2px for equation steps)
+        const borderWidth = btn.style.border.includes('2px') ? '2px' : '1px';
+
         btn.parentElement.querySelectorAll('button').forEach(b => {
             b.style.background = 'white';
-            b.style.border = '1px solid #e2e8f0';
+            b.style.border = `${borderWidth} solid #e2e8f0`;
             b.style.color = 'inherit';
         });
         if (isCorrect) {
             btn.style.background = '#fee2e2';
-            btn.style.border = '1px solid #ef4444';
+            btn.style.border = `${borderWidth} solid #ef4444`;
             btn.style.color = '#991b1b';
             if (fb) fb.style.display = 'block';
         } else {
             btn.style.background = '#d1fae5';
-            btn.style.border = '1px solid #10b981';
+            btn.style.border = `${borderWidth} solid #10b981`;
             btn.style.color = '#065f46';
         }
     }
@@ -2873,6 +2909,22 @@
             btn.style.background = '#fee2e2';
             btn.style.border = '2px solid #ef4444';
             btn.style.color = '#991b1b';
+        }
+    }
+
+    function _handleMCQClick(btn, isCorrect, fbId) {
+        const fb = document.getElementById(fbId);
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+            b.style.background = 'white';
+            b.style.border = '2px solid #e2e8f0';
+        });
+        if (isCorrect) {
+            btn.style.background = '#e0e7ff';
+            btn.style.border = '2px solid #6366f1';
+            if (fb) fb.style.display = 'block';
+        } else {
+            btn.style.background = '#fee2e2';
+            btn.style.border = '2px solid #ef4444';
         }
     }
 
