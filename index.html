@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Math Homework Feedback</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
+  <!-- Montserrat font (Gotham alternative) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
     integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
@@ -17,38 +19,67 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #ffffff;
-      /* Cleaner white background */
-      --sidebar-bg: #f8f9fa;
-      /* Light gray sidebar */
-      --card-bg: #ffffff;
-      --primary: #092f57;
-      --primary-light: #e6f0ff;
-      --accent: #e55204;
-      --text: #1f2933;
-      --muted: #616e7c;
-      --border: #e4e7eb;
-      --bg-body: #f3f4f6;
 
-      /* Status Colors - Updated for modern dashboard */
-      --success-color: #10b981; /* Emerald 500 */
+      /* --- PACIFICA BRAND PALETTE --- */
+      /* Primary */
+      --pacifica-navy: #092f57;      /* PMS 540C */
+      --pacifica-orange: #e55204;    /* PMS 166C */
+      --pacifica-warm-gray: #cbc3ba; /* PMS Warm Gray 2 C */
+
+      /* Secondary */
+      --slate: #597d95;              /* PMS 5415C */
+      --midnight: #093c71;           /* PMS 541C */
+      --robin-egg: #0091b2;          /* PMS 632C */
+      --canary: #f5be0b;             /* PMS 7408C */
+      --tangerine: #f18c20;          /* PMS 144C */
+
+      /* --- FUNCTIONAL MAPPINGS --- */
+      --bg: #ffffff;
+      --bg-body: #f8f8f7; /* Very light tint of warm gray */
+      --bg-paper: #ffffff;
+      --sidebar-bg: #f8f9fa;
+      --card-bg: #ffffff;
+
+      --primary: var(--pacifica-navy);
+      --primary-light: #e6f0ff;
+      --accent: var(--pacifica-orange);
+      --text: var(--pacifica-navy);
+      --text-primary: var(--pacifica-navy);
+      --text-secondary: var(--slate);
+      --muted: var(--slate);
+      --border: #e5e5e0; /* Lighter version of warm gray */
+      --border-color: #e5e5e0;
+
+      /* Status Colors mapped to Brand Palette */
+      --success-color: var(--robin-egg);      /* Success/Mastery */
       --success-bg: #d1fae5;
       --success-text: #065f46;
 
-      --warning-color: #f59e0b; /* Amber 500 */
+      --warning-color: var(--canary);         /* Warning/Okay */
       --warning-bg: #fef3c7;
       --warning-text: #92400e;
 
-      --danger-color: #ef4444; /* Red 500 */
+      --danger-color: var(--pacifica-orange); /* Danger/Struggle */
       --danger-bg: #fee2e2;
       --danger-text: #b91c1c;
 
+      /* Confidence scale colors */
+      --status-mastery: var(--robin-egg);
+      --status-proficient: var(--slate);
+      --status-developing: var(--canary);
+      --status-concern: var(--pacifica-orange);
+
+      /* Typography */
+      --font-brand: 'Montserrat', sans-serif;
+
       /* Spacing & Radius */
-      --radius-md: 12px;
-      --radius-sm: 8px;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --radius-md: 8px;
+      --radius-sm: 4px;
+      --shadow-sm: 0 2px 4px rgba(9, 47, 87, 0.08);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --shadow-subtle: 0 2px 4px rgba(9, 47, 87, 0.08);
+
+      font-family: var(--font-brand);
     }
 
     *,
@@ -77,6 +108,19 @@
       /* Prevent body scroll, handle in layout */
       overscroll-behavior: none;
     }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-brand);
+      font-weight: 800; /* Gotham Bold feel */
+      color: var(--pacifica-navy);
+      margin-top: 0;
+      letter-spacing: -0.02em;
+    }
+
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
 
     /* Login Screen (Standalone) */
     #login-screen {
@@ -304,13 +348,14 @@
       margin-bottom: 32px;
     }
 
-    /* Dashboard Styles */
+    /* Dashboard Styles - Paper Card */
     .dashboard-card {
-      background: #fff;
+      background: var(--bg-paper);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 32px;
-      margin-bottom: 24px;
+      border-radius: var(--radius-md);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-subtle);
+      margin-bottom: 2rem;
     }
 
     .summary-grid {
@@ -701,31 +746,82 @@
       margin-bottom: 6px;
     }
 
+    /* Bubble Rating Scale - Pacifica Brand Style */
     .choice-pill {
-      display: inline-flex;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      justify-content: center;
+      background: #f9f9f9;
+      padding: 0.75rem 1.25rem;
+      border-radius: 50px; /* Full pill shape */
+      border: 1px solid var(--border);
       width: 100%;
+    }
+
+    .bubble-opt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .bubble-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--pacifica-warm-gray);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--slate);
+      transition: all 0.2s;
+      font-family: var(--font-brand);
+    }
+
+    .bubble-label {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      position: absolute;
+      top: 36px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
     }
 
-    .choice-pill:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      color: var(--primary);
+    .bubble-opt:hover .bubble-label { opacity: 1; }
+    .bubble-opt:hover .bubble-circle {
+      border-color: var(--pacifica-navy);
+      color: var(--pacifica-navy);
     }
 
-    .choice-pill.selected {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-      box-shadow: 0 6px 12px rgba(9, 47, 87, 0.12);
+    /* Active State */
+    .bubble-opt.selected .bubble-circle {
+      color: white;
+      border-color: transparent;
+      transform: scale(1.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    /* Contextual Colors for Active State based on Palette */
+    .bubble-opt.selected[data-val="could_not_approach"] .bubble-circle {
+      background-color: var(--status-concern);
+    }
+    .bubble-opt.selected[data-val="unsure"] .bubble-circle {
+      background-color: var(--status-developing);
+    }
+    .bubble-opt.selected[data-val="okay"] .bubble-circle {
+      background-color: var(--status-proficient);
+    }
+    .bubble-opt.selected[data-val="confident"] .bubble-circle {
+      background-color: var(--status-mastery);
     }
 
     .overall-section {
@@ -775,41 +871,45 @@
       pointer-events: none;
     }
 
-    /* Buttons */
+    /* Buttons - Pacifica Brand Style */
     .btn {
-      padding: 14px 24px;
+      padding: 0.7rem 1.8rem;
       border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 600;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: var(--font-brand);
       cursor: pointer;
       transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: var(--pacifica-navy);
       color: #fff;
     }
 
     .btn-primary:hover {
-      background: #06213d;
-      transform: translateY(-1px);
+      background: var(--midnight);
     }
 
     .btn-secondary {
       background: transparent;
-      color: var(--muted);
+      color: var(--slate);
       border: 1px solid var(--border);
+      font-weight: 600;
     }
 
     .btn-secondary:hover {
-      border-color: var(--text);
-      color: var(--text);
+      border-color: var(--pacifica-navy);
+      color: var(--pacifica-navy);
+      background: #f7fafc;
     }
 
     .btn-large {
-      font-size: 1.1rem;
-      padding: 16px 32px;
+      font-size: 0.9rem;
+      padding: 0.7rem 1.8rem;
     }
 
     /* Loading */
@@ -1642,29 +1742,47 @@
           });
         };
 
-        RESPONSE_OPTIONS.forEach(opt => {
-          const optionCell = document.createElement('div');
-          optionCell.className = 'cell option-cell';
+        // Create bubble rating scale container
+        const ratingCell = document.createElement('div');
+        ratingCell.className = 'cell option-cell';
+        ratingCell.style.gridColumn = 'span 4'; // Span all option columns
 
-          const label = document.createElement('label');
-          label.className = 'choice-pill';
-          label.innerHTML = `<input type="radio" name="p-${p.id}" value="${opt.value}"> <span>${opt.emoji}</span> <span>${opt.label}</span>`;
-          const input = label.querySelector('input');
-          const select = () => handleSelection(opt.value, label, input);
-          input.addEventListener('change', select);
-          label.addEventListener('mousedown', (event) => {
-            // Prevent native click scroll behavior before we manually focus without scrolling
-            event.preventDefault();
-          });
-          label.addEventListener('click', (event) => {
-            event.preventDefault();
-            input.checked = true;
-            select();
+        const ratingScale = document.createElement('div');
+        ratingScale.className = 'choice-pill'; // Reusing class name for the container
+
+        RESPONSE_OPTIONS.forEach((opt, index) => {
+          const bubbleDiv = document.createElement('div');
+          bubbleDiv.className = 'bubble-opt';
+          bubbleDiv.setAttribute('data-val', opt.value);
+
+          const bubbleNum = index + 1;
+          const labelMap = {
+            'could_not_approach': 'Confusion',
+            'unsure': 'Partial',
+            'okay': 'Proficient',
+            'confident': 'Mastery'
+          };
+
+          bubbleDiv.innerHTML = `
+            <div class="bubble-circle">${bubbleNum}</div>
+            <span class="bubble-label">${labelMap[opt.value]}</span>
+          `;
+
+          bubbleDiv.addEventListener('click', () => {
+            const preservedScroll = mainContent.scrollTop;
+            state.responses[p.id] = opt.value;
+            ratingScale.querySelectorAll('.bubble-opt').forEach(el => el.classList.remove('selected'));
+            bubbleDiv.classList.add('selected');
+            requestAnimationFrame(() => {
+              mainContent.scrollTop = preservedScroll;
+            });
           });
 
-          optionCell.appendChild(label);
-          row.appendChild(optionCell);
+          ratingScale.appendChild(bubbleDiv);
         });
+
+        ratingCell.appendChild(ratingScale);
+        row.appendChild(ratingCell);
 
         grid.appendChild(row);
 
