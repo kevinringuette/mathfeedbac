@@ -346,6 +346,7 @@
       margin-top: 4px;
     }
 
+    /* Old AI analysis button styles - removed
     .dash-actions {
       display: flex;
       align-items: center;
@@ -371,6 +372,7 @@
     .sparkle-icon {
       font-size: 1.1rem;
     }
+    */
 
     .chart-section {
       margin-bottom: 40px;
@@ -830,6 +832,7 @@
       gap: 8px;
     }
 
+    /* Old AI analysis inline status styles - removed
     .analysis-inline {
       display: flex;
       flex-direction: column;
@@ -891,6 +894,7 @@
       border-radius: 8px;
       background: #f8fafc;
     }
+    */
 
     .modal-close {
       border: none;
@@ -978,20 +982,6 @@
             <div>
               <h2 class="dash-title" id="dash-title">Assignment Name</h2>
               <p class="dash-meta">Feedback Submitted</p>
-            </div>
-            <div class="dash-actions">
-              <button class="btn btn-ghost" id="btn-ai-analysis">
-                <span class="sparkle-icon">✨</span>
-                <span>AI Analysis</span>
-              </button>
-              <div class="analysis-inline" id="analysis-inline" aria-live="polite">
-                <div class="analysis-status" id="analysis-status" hidden>
-                  <span class="status-dot" aria-hidden="true"></span>
-                  <span class="spinner-sm" aria-hidden="true" hidden></span>
-                  <span id="analysis-status-text">Loading...</span>
-                </div>
-                <button class="btn btn-secondary btn-small" id="btn-view-analysis" hidden>View analysis</button>
-              </div>
             </div>
           </div>
 
@@ -1179,22 +1169,23 @@
     const mainContent = document.querySelector('.main-content');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
-    const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
-    const analysisModal = document.getElementById('analysis-modal');
-    const analysisModalTitle = document.getElementById('analysis-modal-title');
-    const analysisModalClose = document.getElementById('analysis-modal-close');
-    const analysisFrame = document.getElementById('analysis-frame');
-    const analysisForm = document.getElementById('analysis-form');
-    const analysisLoading = document.getElementById('analysis-loading');
-    const analysisLoadingText = document.getElementById('analysis-loading-text');
-    const analysisPayloadInput = document.getElementById('analysis-payload');
-    const analysisMetaInput = document.getElementById('analysis-meta');
-    const analysisInline = document.getElementById('analysis-inline');
-    const analysisStatus = document.getElementById('analysis-status');
-    const analysisStatusText = document.getElementById('analysis-status-text');
-    const viewAnalysisBtn = document.getElementById('btn-view-analysis');
-    let analysisLoadingTimers = [];
-    let analysisState = { status: 'idle', contextKey: null, contextTitle: null };
+    // Old AI analysis elements - removed in favor of Formative Feedback sidebar links
+    // const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
+    // const analysisModal = document.getElementById('analysis-modal');
+    // const analysisModalTitle = document.getElementById('analysis-modal-title');
+    // const analysisModalClose = document.getElementById('analysis-modal-close');
+    // const analysisFrame = document.getElementById('analysis-frame');
+    // const analysisForm = document.getElementById('analysis-form');
+    // const analysisLoading = document.getElementById('analysis-loading');
+    // const analysisLoadingText = document.getElementById('analysis-loading-text');
+    // const analysisPayloadInput = document.getElementById('analysis-payload');
+    // const analysisMetaInput = document.getElementById('analysis-meta');
+    // const analysisInline = document.getElementById('analysis-inline');
+    // const analysisStatus = document.getElementById('analysis-status');
+    // const analysisStatusText = document.getElementById('analysis-status-text');
+    // const viewAnalysisBtn = document.getElementById('btn-view-analysis');
+    // let analysisLoadingTimers = [];
+    // let analysisState = { status: 'idle', contextKey: null, contextTitle: null };
 
     // Views
     const views = {
@@ -1205,18 +1196,19 @@
       aiFeedback: document.getElementById('view-ai-feedback')
     };
 
-    analysisModalClose.addEventListener('click', closeAnalysisModal);
-    analysisModal.addEventListener('click', (event) => {
-      if (event.target === analysisModal) closeAnalysisModal();
-    });
+    // Old AI analysis event listeners - removed
+    // analysisModalClose.addEventListener('click', closeAnalysisModal);
+    // analysisModal.addEventListener('click', (event) => {
+    //   if (event.target === analysisModal) closeAnalysisModal();
+    // });
 
-    if (analysisFrame) {
-      analysisFrame.addEventListener('load', () => {
-        if (analysisFrame.dataset.expectingRemote === 'form') {
-          markAnalysisReady();
-        }
-      });
-    }
+    // if (analysisFrame) {
+    //   analysisFrame.addEventListener('load', () => {
+    //     if (analysisFrame.dataset.expectingRemote === 'form') {
+    //       markAnalysisReady();
+    //     }
+    //   });
+    // }
 
     document.addEventListener('DOMContentLoaded', init);
 
@@ -2017,18 +2009,19 @@
 
       document.getElementById('dash-title').textContent = resolvedTitle;
 
-      if (aiAnalysisBtn) {
-        aiAnalysisBtn.disabled = historyItems.length === 0;
-        aiAnalysisBtn.title = historyItems.length ? 'Send your records for AI-powered study tips' : 'No feedback to analyze yet';
-        aiAnalysisBtn.onclick = () => requestAnalysis(historyItems, {
-          type: resolvedContextType,
-          assignment: resolvedContextType === 'assignment' ? assignment : null,
-          unit: resolvedUnit,
-          title: resolvedTitle
-        });
-      }
+      // Old AI analysis button setup - removed in favor of Formative Feedback sidebar links
+      // if (aiAnalysisBtn) {
+      //   aiAnalysisBtn.disabled = historyItems.length === 0;
+      //   aiAnalysisBtn.title = historyItems.length ? 'Send your records for AI-powered study tips' : 'No feedback to analyze yet';
+      //   aiAnalysisBtn.onclick = () => requestAnalysis(historyItems, {
+      //     type: resolvedContextType,
+      //     assignment: resolvedContextType === 'assignment' ? assignment : null,
+      //     unit: resolvedUnit,
+      //     title: resolvedTitle
+      //   });
+      // }
 
-      renderAnalysisInlineForContext(contextKey, resolvedTitle);
+      // renderAnalysisInlineForContext(contextKey, resolvedTitle);
 
       const { concepts, percentages, stats, conceptCounts } = getHistoryStats(historyItems);
 
