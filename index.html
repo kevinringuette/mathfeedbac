@@ -28,6 +28,26 @@
       --text: #1f2933;
       --muted: #616e7c;
       --border: #e4e7eb;
+      --bg-body: #f3f4f6;
+
+      /* Status Colors - Updated for modern dashboard */
+      --success-color: #10b981; /* Emerald 500 */
+      --success-bg: #d1fae5;
+      --success-text: #065f46;
+
+      --warning-color: #f59e0b; /* Amber 500 */
+      --warning-bg: #fef3c7;
+      --warning-text: #92400e;
+
+      --danger-color: #ef4444; /* Red 500 */
+      --danger-bg: #fee2e2;
+      --danger-text: #b91c1c;
+
+      /* Spacing & Radius */
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -295,36 +315,55 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
       margin-top: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 2rem;
     }
 
     .stat-card {
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-card.alert-card {
+      border-left: 5px solid var(--danger-color);
     }
 
     .stat-label {
+      font-size: 0.875rem;
+      font-weight: 600;
       color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
     }
 
     .stat-value {
       font-weight: 800;
-      font-size: 1.5rem;
-      color: var(--primary);
+      font-size: 2.25rem;
+      color: var(--text);
       margin: 0;
+      line-height: 1.1;
     }
+
+    .stat-value.text-success { color: var(--success-color); }
+    .stat-value.text-warning { color: var(--warning-color); }
+    .stat-value.text-danger { color: var(--danger-color); }
 
     .stat-help {
       color: var(--muted);
-      font-size: 0.85rem;
-      margin-top: 6px;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
     }
 
     .dash-header {
@@ -385,28 +424,66 @@
 
     .lesson-list {
       display: grid;
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
     }
 
     .lesson-card {
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-      background: #fdfdfd;
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lesson-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
     }
 
     .lesson-title {
-      margin: 0 0 6px;
+      margin: 0;
       font-weight: 700;
-      color: var(--primary);
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .lesson-count {
+      background-color: #f3f4f6;
+      padding: 0.25rem 0.75rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
     }
 
     .lesson-meta {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
       color: var(--muted);
-      font-size: 0.9rem;
+    }
+
+    .stat-highlight-danger {
+      color: var(--danger-color);
+      font-weight: 700;
+    }
+
+    .stat-highlight-success {
+      color: var(--success-color);
+      font-weight: 700;
+    }
+
+    .mini-progress-bg {
+      height: 8px;
+      background-color: #f3f4f6;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      width: 100%;
     }
 
     .lesson-pill {
@@ -444,10 +521,10 @@
 
     .bar-chart {
       display: flex;
-      height: 48px;
+      height: 32px;
       width: 100%;
-      background: #f0f0f0;
-      border-radius: 6px;
+      background: #f3f4f6;
+      border-radius: 99px;
       overflow: hidden;
     }
 
@@ -456,21 +533,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
+      color: white;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      transition: width 1s ease-in-out;
     }
 
     .bar-segment.confident {
-      background: #4caf50;
+      background: var(--success-color);
     }
 
     .bar-segment.okay {
-      background: #ff9800;
+      background: var(--warning-color);
     }
 
     .bar-segment.unsure {
-      background: #f44336;
+      background: var(--danger-color);
     }
 
     .problem-list-view {
@@ -989,13 +1067,13 @@
             <h3>Confidence Overview</h3>
             <div class="chart-section">
               <div class="bar-chart" id="performance-chart"></div>
-              <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 0.9rem; color: var(--muted);">
-                <span style="display: flex; align-items: center; gap: 6px;"><span
-                    style="width: 10px; height: 10px; background: #4caf50; border-radius: 50%;"></span> Confident</span>
-                <span style="display: flex; align-items: center; gap: 6px;"><span
-                    style="width: 10px; height: 10px; background: #ff9800; border-radius: 50%;"></span> Okay</span>
-                <span style="display: flex; align-items: center; gap: 6px;"><span
-                    style="width: 10px; height: 10px; background: #f44336; border-radius: 50%;"></span> Struggled</span>
+              <div style="display: flex; gap: 1.5rem; margin-top: 1rem; justify-content: center; font-size: 0.875rem; color: var(--muted);">
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><span
+                    style="width: 10px; height: 10px; background: var(--success-color); border-radius: 50%;"></span> Confident</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><span
+                    style="width: 10px; height: 10px; background: var(--warning-color); border-radius: 50%;"></span> Okay</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><span
+                    style="width: 10px; height: 10px; background: var(--danger-color); border-radius: 50%;"></span> Struggled</span>
               </div>
             </div>
 
@@ -2035,18 +2113,18 @@
       const summary = document.getElementById('overall-summary');
       summary.innerHTML = `
         <div class="stat-card">
-          <div class="stat-label">Overall responses</div>
+          <div class="stat-label">Total Responses</div>
           <div class="stat-value">${stats.total}</div>
           <div class="stat-help">Entries counted in this view</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Confident</div>
-          <div class="stat-value">${Math.round(percentages.confident)}%</div>
+          <div class="stat-value text-success">${Math.round(percentages.confident)}%</div>
           <div class="stat-help">${stats.confident} marked confident</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Needs review</div>
-          <div class="stat-value">${Math.round(percentages.unsure)}%</div>
+        <div class="stat-card alert-card">
+          <div class="stat-label" style="color:var(--danger-color)">Needs Review</div>
+          <div class="stat-value text-danger">${Math.round(percentages.unsure)}%</div>
           <div class="stat-help">${stats.unsure} struggled responses</div>
         </div>
       `;
@@ -2103,13 +2181,24 @@
           lessonStats.forEach(({ lesson, percentages, stats }) => {
             const card = document.createElement('div');
             card.className = 'lesson-card';
+
+            // Determine highlighting
+            const confidentHighlight = percentages.confident > 70 ? 'stat-highlight-success' : '';
+            const struggledHighlight = percentages.unsure > 40 ? 'stat-highlight-danger' : '';
+
             card.innerHTML = `
-              <h4 class="lesson-title">Lesson ${lesson}</h4>
+              <div class="lesson-header">
+                <div class="lesson-title">Lesson ${lesson}</div>
+                <div class="lesson-count">${stats.total} Response${stats.total !== 1 ? 's' : ''}</div>
+              </div>
               <div class="lesson-meta">
-                <span class="lesson-pill">${Math.round(percentages.confident)}% confident</span>
-                <span>Okay: ${Math.round(percentages.okay)}%</span>
-                <span>Struggled: ${Math.round(percentages.unsure)}%</span>
-                <span>${stats.total} responses</span>
+                <span class="${confidentHighlight}">Confident: ${Math.round(percentages.confident)}%</span>
+                <span class="${struggledHighlight}">Struggled: ${Math.round(percentages.unsure)}%</span>
+              </div>
+              <div class="mini-progress-bg">
+                ${percentages.confident > 0 ? `<div class="bar-segment confident" style="width: ${percentages.confident}%"></div>` : ''}
+                ${percentages.okay > 0 ? `<div class="bar-segment okay" style="width: ${percentages.okay}%"></div>` : ''}
+                ${percentages.unsure > 0 ? `<div class="bar-segment unsure" style="width: ${percentages.unsure}%"></div>` : ''}
               </div>
             `;
             lessonList.appendChild(card);
