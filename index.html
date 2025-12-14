@@ -562,60 +562,67 @@
 
     /* Form Styles - table layout */
     .feedback-grid {
-      display: grid;
-      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      box-shadow: var(--shadow-subtle);
+      margin-bottom: 2rem;
     }
 
     .feedback-row {
       display: grid;
-      grid-template-columns: 1.6fr repeat(4, 1fr);
-      gap: 6px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      background: var(--card-bg);
-      box-shadow: var(--shadow-subtle);
-      scroll-margin: 120px 0 120px 0;
+      grid-template-columns: 1fr 280px;
+      gap: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 0;
+      align-items: start;
+    }
+
+    .feedback-row:first-child {
+      padding-top: 0;
     }
 
     .feedback-row + .feedback-row {
       margin-top: 0;
     }
 
-    .feedback-header {
-      background: var(--sidebar-bg);
+    .problem-content {
+      padding-top: 0.2rem;
+    }
+
+    .problem-topic {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--slate);
+      margin-bottom: 0.5rem;
       font-weight: 700;
-      color: var(--muted);
     }
 
-    .cell {
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .cell.option-cell {
-      justify-content: center;
-      border-left: 1px solid var(--border);
-      text-align: center;
-    }
-
-    .problem-cell {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 16px 18px;
-      gap: 6px;
-    }
-
-    .problem-cell .problem-title {
-      font-size: 1.1rem;
+    .problem-title {
+      font-size: 1.15rem;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--pacifica-navy);
+      margin-bottom: 0.5rem;
       display: flex;
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
+    }
+
+    .eval-scale {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 0.75rem 1rem;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      width: 100%;
+      gap: 0.5rem;
     }
 
     .part-label {
@@ -661,32 +668,107 @@
       font-family: var(--font-brand);
     }
 
-    .choice-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: var(--radius-md);
-      border: 2px solid var(--pacifica-warm-gray);
+    .reflection-toggle {
+      font-size: 0.85rem;
+      color: var(--pacifica-navy);
+      background: none;
+      border: none;
       cursor: pointer;
-      transition: all 0.2s ease;
-      justify-content: center;
-      width: 100%;
+      padding: 0;
+      margin-top: 0.75rem;
       font-weight: 600;
-      background: white;
+      border-bottom: 1px dotted var(--pacifica-navy);
+      font-family: var(--font-brand);
     }
 
-    .choice-pill:hover {
+    .reflection-toggle:hover {
+      color: var(--pacifica-orange);
+      border-bottom-color: var(--pacifica-orange);
+    }
+
+    .reflection-area {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .reflection-area.open {
+      display: block;
+    }
+
+    .notebook-hint {
+      font-size: 0.75rem;
+      color: var(--slate);
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .bubble-opt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      flex: 1;
+    }
+
+    .bubble-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--pacifica-warm-gray);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--slate);
+      transition: all 0.2s;
+      font-family: var(--font-brand);
+    }
+
+    .bubble-label {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.7;
+      text-align: center;
+      transition: opacity 0.2s;
+    }
+
+    .bubble-opt:hover .bubble-label {
+      opacity: 1;
+    }
+
+    .bubble-opt:hover .bubble-circle {
       border-color: var(--pacifica-navy);
       color: var(--pacifica-navy);
     }
 
-    .choice-pill.selected {
-      background: var(--pacifica-navy);
-      border-color: var(--pacifica-navy);
+    .bubble-opt.active .bubble-circle {
       color: white;
+      border-color: transparent;
+      transform: scale(1.1);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-      transform: scale(1.02);
+    }
+
+    .bubble-opt.active[data-val="1"] .bubble-circle {
+      background-color: var(--status-concern);
+    }
+
+    .bubble-opt.active[data-val="2"] .bubble-circle {
+      background-color: var(--status-developing);
+    }
+
+    .bubble-opt.active[data-val="3"] .bubble-circle {
+      background-color: var(--status-proficient);
+    }
+
+    .bubble-opt.active[data-val="4"] .bubble-circle {
+      background-color: var(--status-mastery);
     }
 
     .overall-section {
@@ -739,7 +821,7 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     }
 
-    .choice-pill input {
+    .bubble-opt input {
       position: absolute;
       opacity: 0;
       pointer-events: none;
@@ -957,6 +1039,33 @@
       font-size: 1.2rem;
       cursor: pointer;
       color: var(--muted);
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 768px) {
+      .feedback-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .eval-scale {
+        width: 100%;
+      }
+
+      .bubble-circle {
+        width: 36px;
+        height: 36px;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+      }
+
+      .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
     }
   </style>
 </head>
@@ -1536,78 +1645,86 @@
         row.className = 'feedback-row';
         row.id = `row-${p.id}`;
 
-        const problemCell = document.createElement('div');
-        problemCell.className = 'cell problem-cell';
-        problemCell.innerHTML = `
-            <div class="problem-title">
-              ${p.label}
-              ${p.partLabel ? `<span class="part-label">${p.partLabel}</span>` : ''}
-              ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
-            </div>
-            ${p.description ? `<div class="problem-description">${p.description}</div>` : ''}
+        // Problem content column
+        const problemContent = document.createElement('div');
+        problemContent.className = 'problem-content';
+        problemContent.innerHTML = `
+          ${p.concept ? `<div class="problem-topic">${p.concept}</div>` : ''}
+          <div class="problem-title">
+            ${p.label}
+            ${p.partLabel ? `<span class="part-label">${p.partLabel}</span>` : ''}
+          </div>
         `;
-        row.appendChild(problemCell);
 
-        const handleSelection = (value, labelEl, inputEl) => {
-          const preservedScroll = mainContent.scrollTop;
-          state.responses[p.id] = value;
-          row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
-          labelEl.classList.add('selected');
-          if (document.activeElement !== inputEl) {
-            inputEl.focus({ preventScroll: true });
-          }
-          requestAnimationFrame(() => {
-            mainContent.scrollTop = preservedScroll;
-          });
+        // Add toggle button for comments
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'reflection-toggle';
+        toggleBtn.textContent = '+ Add analysis note';
+        toggleBtn.onclick = function() {
+          const area = this.nextElementSibling;
+          area.classList.toggle('open');
+          this.textContent = area.classList.contains('open') ? '− Close note' : '+ Add analysis note';
         };
 
-        RESPONSE_OPTIONS.forEach(opt => {
-          const optionCell = document.createElement('div');
-          optionCell.className = 'cell option-cell';
-
-          const label = document.createElement('label');
-          label.className = 'choice-pill';
-          label.innerHTML = `<input type="radio" name="p-${p.id}" value="${opt.value}"> <span>${opt.emoji}</span> <span>${opt.label}</span>`;
-          const input = label.querySelector('input');
-          const select = () => handleSelection(opt.value, label, input);
-          input.addEventListener('change', select);
-          label.addEventListener('mousedown', (event) => {
-            // Prevent native click scroll behavior before we manually focus without scrolling
-            event.preventDefault();
-          });
-          label.addEventListener('click', (event) => {
-            event.preventDefault();
-            input.checked = true;
-            select();
-          });
-
-          optionCell.appendChild(label);
-          row.appendChild(optionCell);
-        });
-
-        grid.appendChild(row);
-
-        const commentWrapper = document.createElement('div');
-        commentWrapper.className = 'feedback-row';
-        const commentCell = document.createElement('div');
-        commentCell.className = 'cell problem-cell';
-        commentCell.style.gridColumn = '1 / -1';
-
-        const commentLabel = document.createElement('label');
-        commentLabel.className = 'comment-label';
-        commentLabel.textContent = 'Questions or comments for this problem (optional)';
+        const reflectionArea = document.createElement('div');
+        reflectionArea.className = 'reflection-area';
 
         const textarea = document.createElement('textarea');
         textarea.className = 'comment-box';
-        textarea.placeholder = 'Share where you got stuck or any thoughts on this problem...';
+        textarea.placeholder = 'I struggled specifically with...';
         textarea.oninput = (e) => {
           state.problemComments[p.id] = e.target.value;
         };
 
-        commentCell.appendChild(commentLabel);
-        commentCell.appendChild(textarea);
-        commentWrapper.appendChild(commentCell);
-        grid.appendChild(commentWrapper);
+        const hint = document.createElement('div');
+        hint.className = 'notebook-hint';
+        hint.textContent = 'Focus on the process where you got stuck.';
+
+        reflectionArea.appendChild(textarea);
+        reflectionArea.appendChild(hint);
+
+        problemContent.appendChild(toggleBtn);
+        problemContent.appendChild(reflectionArea);
+
+        // Rating scale column
+        const evalScale = document.createElement('div');
+        evalScale.className = 'eval-scale';
+
+        const handleSelection = (value, bubbleOpt) => {
+          state.responses[p.id] = value;
+          evalScale.querySelectorAll('.bubble-opt').forEach(el => el.classList.remove('active'));
+          bubbleOpt.classList.add('active');
+        };
+
+        RESPONSE_OPTIONS.forEach((opt, idx) => {
+          const bubbleOpt = document.createElement('div');
+          bubbleOpt.className = 'bubble-opt';
+          bubbleOpt.setAttribute('data-val', idx + 1);
+          bubbleOpt.onclick = () => handleSelection(opt.value, bubbleOpt);
+
+          const circle = document.createElement('div');
+          circle.className = 'bubble-circle';
+          circle.textContent = idx + 1;
+
+          const label = document.createElement('span');
+          label.className = 'bubble-label';
+          label.textContent = opt.label;
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `p-${p.id}`;
+          input.value = opt.value;
+
+          bubbleOpt.appendChild(circle);
+          bubbleOpt.appendChild(label);
+          bubbleOpt.appendChild(input);
+          evalScale.appendChild(bubbleOpt);
+        });
+
+        row.appendChild(problemContent);
+        row.appendChild(evalScale);
+        grid.appendChild(row);
       });
 
       container.appendChild(grid);
