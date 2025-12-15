@@ -98,6 +98,19 @@
       letter-spacing: -0.02em;
     }
 
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-brand);
+      font-weight: 800; /* Gotham Bold feel */
+      color: var(--pacifica-navy);
+      margin-top: 0;
+      letter-spacing: -0.02em;
+    }
+
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+
     /* Login Screen (Standalone) */
     #login-screen {
       display: flex;
@@ -204,6 +217,38 @@
       border-left: 3px solid transparent;
     }
 
+    .feedback-subitem {
+      padding: 8px 16px 8px 48px;
+      /* More indented */
+      margin-bottom: 2px;
+      border-radius: 0 4px 4px 0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+      transition: all 0.15s ease;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 8px;
+      border-left: 3px solid transparent;
+    }
+
+    .feedback-subitem:hover {
+      background: #f0f4ff;
+      color: var(--primary);
+    }
+
+    .feedback-subitem.active {
+      background: #e6f0ff;
+      color: var(--primary);
+      font-weight: 600;
+      border-left-color: var(--accent);
+    }
+
+    .feedback-icon {
+      font-size: 0.9rem;
+    }
+
     .assignment-item:hover {
       background: #e6f0ff;
     }
@@ -264,6 +309,10 @@
       }
     }
 
+    .animate-fade-in {
+      animation: fade 0.3s ease;
+    }
+
     /* Empty State */
     .empty-state {
       text-align: center;
@@ -293,7 +342,7 @@
       margin-bottom: 32px;
     }
 
-    /* Dashboard Styles */
+    /* Dashboard Styles - Paper Card */
     .dashboard-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -305,10 +354,10 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
       margin-top: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 2rem;
     }
 
     .stat-card {
@@ -335,10 +384,14 @@
       line-height: 1;
     }
 
+    .stat-value.text-success { color: var(--success-color); }
+    .stat-value.text-warning { color: var(--warning-color); }
+    .stat-value.text-danger { color: var(--danger-color); }
+
     .stat-help {
       color: var(--muted);
-      font-size: 0.85rem;
-      margin-top: 6px;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
     }
 
     .dash-header {
@@ -361,6 +414,7 @@
       margin-top: 4px;
     }
 
+    /* Old AI analysis button styles - removed
     .dash-actions {
       display: flex;
       align-items: center;
@@ -392,6 +446,7 @@
     .sparkle-icon {
       font-size: 1.1rem;
     }
+    */
 
     .chart-section {
       margin-bottom: 40px;
@@ -404,7 +459,8 @@
 
     .lesson-list {
       display: grid;
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
     }
 
     .lesson-card {
@@ -423,10 +479,29 @@
 
     .lesson-meta {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
       color: var(--muted);
-      font-size: 0.9rem;
+    }
+
+    .stat-highlight-danger {
+      color: var(--danger-color);
+      font-weight: 700;
+    }
+
+    .stat-highlight-success {
+      color: var(--success-color);
+      font-weight: 700;
+    }
+
+    .mini-progress-bg {
+      height: 8px;
+      background-color: #f3f4f6;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      width: 100%;
     }
 
     .lesson-pill {
@@ -479,9 +554,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
+      color: white;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      transition: width 1s ease-in-out;
     }
 
     .bar-segment.confident {
@@ -827,7 +903,7 @@
       pointer-events: none;
     }
 
-    /* Buttons */
+    /* Buttons - Pacifica Brand Style */
     .btn {
       padding: 0.7rem 1.8rem;
       border: none;
@@ -968,6 +1044,7 @@
       gap: 8px;
     }
 
+    /* Old AI analysis inline status styles - removed
     .analysis-inline {
       display: flex;
       flex-direction: column;
@@ -1032,6 +1109,7 @@
       border-radius: 8px;
       background: #f8fafc;
     }
+    */
 
     .modal-close {
       border: none;
@@ -1147,33 +1225,19 @@
               <h2 class="dash-title" id="dash-title">Assignment Name</h2>
               <p class="dash-meta">Feedback Submitted</p>
             </div>
-            <div class="dash-actions">
-              <button class="btn btn-ghost" id="btn-ai-analysis">
-                <span class="sparkle-icon">✨</span>
-                <span>AI Analysis</span>
-              </button>
-              <div class="analysis-inline" id="analysis-inline" aria-live="polite">
-                <div class="analysis-status" id="analysis-status" hidden>
-                  <span class="status-dot" aria-hidden="true"></span>
-                  <span class="spinner-sm" aria-hidden="true" hidden></span>
-                  <span id="analysis-status-text">Loading...</span>
-                </div>
-                <button class="btn btn-secondary btn-small" id="btn-view-analysis" hidden>View analysis</button>
-              </div>
-            </div>
           </div>
 
           <div class="dashboard-card">
             <h3>Confidence Overview</h3>
             <div class="chart-section">
               <div class="bar-chart" id="performance-chart"></div>
-              <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 0.9rem; color: var(--muted);">
-                <span style="display: flex; align-items: center; gap: 6px;"><span
-                    style="width: 10px; height: 10px; background: #4caf50; border-radius: 50%;"></span> Confident</span>
-                <span style="display: flex; align-items: center; gap: 6px;"><span
-                    style="width: 10px; height: 10px; background: #ff9800; border-radius: 50%;"></span> Okay</span>
-                <span style="display: flex; align-items: center; gap: 6px;"><span
-                    style="width: 10px; height: 10px; background: #f44336; border-radius: 50%;"></span> Struggled</span>
+              <div style="display: flex; gap: 1.5rem; margin-top: 1rem; justify-content: center; font-size: 0.875rem; color: var(--muted);">
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><span
+                    style="width: 10px; height: 10px; background: var(--success-color); border-radius: 50%;"></span> Confident</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><span
+                    style="width: 10px; height: 10px; background: var(--warning-color); border-radius: 50%;"></span> Okay</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><span
+                    style="width: 10px; height: 10px; background: var(--danger-color); border-radius: 50%;"></span> Struggled</span>
               </div>
             </div>
 
@@ -1208,6 +1272,31 @@
           </div>
         </div>
 
+        <!-- View: AI Formative Feedback -->
+        <div id="view-ai-feedback" class="view-section">
+          <div class="dash-header">
+            <div>
+              <h2 class="dash-title" id="ai-feedback-title">AI Formative Feedback</h2>
+              <p class="dash-meta" id="ai-feedback-meta">Personalized study recommendations</p>
+            </div>
+          </div>
+
+          <!-- Generate Analysis UI (shown when no feedback exists) -->
+          <div id="ai-feedback-generate" style="display: none;">
+            <div class="empty-state">
+              <span class="empty-icon">🤖</span>
+              <h2 class="empty-title">AI Formative Feedback</h2>
+              <p class="empty-desc">Analyze your homework performance to get a personalized study deck.</p>
+              <button class="btn btn-primary btn-large" id="btn-generate-feedback">Generate Feedback</button>
+            </div>
+          </div>
+
+          <!-- Dashboard Container (shown when feedback exists) -->
+          <div id="ai-feedback-dashboard" class="min-h-screen bg-slate-50" style="display: none;">
+            <!-- AI feedback content will be injected here -->
+          </div>
+        </div>
+
       </div>
     </main>
   </div>
@@ -1234,6 +1323,12 @@
     <textarea name="meta" id="analysis-meta" hidden></textarea>
   </form>
 
+  <!-- Formative Feedback iframe and form -->
+  <iframe id="formative-feedback-frame" name="formative-feedback-frame" style="display: none;"></iframe>
+  <form id="formative-feedback-form" method="POST" target="formative-feedback-frame" style="display: none;" accept-charset="UTF-8">
+    <textarea name="payload" id="formative-feedback-payload" hidden></textarea>
+  </form>
+
   <script>
     const CONFIG = {
       AIRTABLE_API_KEY: 'patCUB0HwqgJr9nOr.615a833b9faf447aab9868f45b8818432dc3337bb8a2a5c1ac01689a92488a3a',
@@ -1243,10 +1338,15 @@
         STUDENTS: 'tblBcHcI0re70fruS',
         PROBLEMS: 'tblE2IAeKV2TVEjJG',
         FEEDBACK: 'tblRNpi8trhwyuPA1'
+        // AI_FEEDBACK: 'tblAIFormativeFeedback' // Uncomment when you create this table in Airtable
       }
     };
 
     const ANALYSIS_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
+    const FORMATIVE_FEEDBACK_WEBHOOK_URL = 'https://kringuette0.app.n8n.cloud/webhook/2441fad7-9b5d-4561-aaca-f0159f8e9a88';
+
+    // Set to true to test with sample data (no N8N required)
+    const USE_SAMPLE_FEEDBACK_DATA = false;
 
     const FIELD_NAMES = {
       STUDENT_NAME: ['Name', 'Student Name', 'Full Name'],
@@ -1258,13 +1358,14 @@
       PROBLEM_DESCRIPTION: ['Question Text', 'Prompt', 'Description'],
       PART_LABEL: ['Part Label'],
       MATH_CONCEPT: ['Math Concept', 'Concept'],
+      PROBLEM_HOMEWORK_LINK: ['Homework'], // Link from Problems table to Homework Name table
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
       FEEDBACK_TEXT: ['Individual Feeback', 'Individual Feedback', 'Feedback', 'Feedback Choice', 'Feedback Option'],
       FEEDBACK_STUDENT_LINK: ['Students', 'Student', 'Student Link'],
       FEEDBACK_COMMENT: ['Individual Feeback', 'Individual Feedback', 'Comment', 'Comments', 'Overall Comment'],
       FEEDBACK_RATING: ['Rating', 'Overall Rating'],
-      FEEDBACK_HOMEWORK_NAME: ['Homework Name']
+      FEEDBACK_HOMEWORK_NAME: ['Homework Name'] // Link from Feedback table to Homework Name table
     };
 
     const RESPONSE_OPTIONS = [
@@ -1281,9 +1382,11 @@
       assignmentMeta: new Map(), // name -> { unit, lesson, homeworkNameId }
       problemsByAssignment: new Map(),
       history: [], // Array of feedback records
+      aiFeedbackByLesson: new Map(), // lessonId -> AI feedback JSON
       currentUser: null, // { id, name, email }
       currentAssignment: null, // String name
       currentUnit: null,
+      currentLesson: null, // For AI feedback page
       responses: {}, // For the form
       problemComments: {},
       overallComment: '',
@@ -1308,43 +1411,46 @@
     const mainContent = document.querySelector('.main-content');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
-    const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
-    const analysisModal = document.getElementById('analysis-modal');
-    const analysisModalTitle = document.getElementById('analysis-modal-title');
-    const analysisModalClose = document.getElementById('analysis-modal-close');
-    const analysisFrame = document.getElementById('analysis-frame');
-    const analysisForm = document.getElementById('analysis-form');
-    const analysisLoading = document.getElementById('analysis-loading');
-    const analysisLoadingText = document.getElementById('analysis-loading-text');
-    const analysisPayloadInput = document.getElementById('analysis-payload');
-    const analysisMetaInput = document.getElementById('analysis-meta');
-    const analysisInline = document.getElementById('analysis-inline');
-    const analysisStatus = document.getElementById('analysis-status');
-    const analysisStatusText = document.getElementById('analysis-status-text');
-    const viewAnalysisBtn = document.getElementById('btn-view-analysis');
-    let analysisLoadingTimers = [];
-    let analysisState = { status: 'idle', contextKey: null, contextTitle: null };
+    // Old AI analysis elements - removed in favor of Formative Feedback sidebar links
+    // const aiAnalysisBtn = document.getElementById('btn-ai-analysis');
+    // const analysisModal = document.getElementById('analysis-modal');
+    // const analysisModalTitle = document.getElementById('analysis-modal-title');
+    // const analysisModalClose = document.getElementById('analysis-modal-close');
+    // const analysisFrame = document.getElementById('analysis-frame');
+    // const analysisForm = document.getElementById('analysis-form');
+    // const analysisLoading = document.getElementById('analysis-loading');
+    // const analysisLoadingText = document.getElementById('analysis-loading-text');
+    // const analysisPayloadInput = document.getElementById('analysis-payload');
+    // const analysisMetaInput = document.getElementById('analysis-meta');
+    // const analysisInline = document.getElementById('analysis-inline');
+    // const analysisStatus = document.getElementById('analysis-status');
+    // const analysisStatusText = document.getElementById('analysis-status-text');
+    // const viewAnalysisBtn = document.getElementById('btn-view-analysis');
+    // let analysisLoadingTimers = [];
+    // let analysisState = { status: 'idle', contextKey: null, contextTitle: null };
 
     // Views
     const views = {
       welcome: document.getElementById('view-welcome'),
       empty: document.getElementById('view-empty'),
       upload: document.getElementById('view-upload'),
-      dashboard: document.getElementById('view-dashboard')
+      dashboard: document.getElementById('view-dashboard'),
+      aiFeedback: document.getElementById('view-ai-feedback')
     };
 
-    analysisModalClose.addEventListener('click', closeAnalysisModal);
-    analysisModal.addEventListener('click', (event) => {
-      if (event.target === analysisModal) closeAnalysisModal();
-    });
+    // Old AI analysis event listeners - removed
+    // analysisModalClose.addEventListener('click', closeAnalysisModal);
+    // analysisModal.addEventListener('click', (event) => {
+    //   if (event.target === analysisModal) closeAnalysisModal();
+    // });
 
-    if (analysisFrame) {
-      analysisFrame.addEventListener('load', () => {
-        if (analysisFrame.dataset.expectingRemote === 'form') {
-          markAnalysisReady();
-        }
-      });
-    }
+    // if (analysisFrame) {
+    //   analysisFrame.addEventListener('load', () => {
+    //     if (analysisFrame.dataset.expectingRemote === 'form') {
+    //       markAnalysisReady();
+    //     }
+    //   });
+    // }
 
     document.addEventListener('DOMContentLoaded', init);
 
@@ -1402,20 +1508,26 @@
         const assign = extractFirstAvailable(r.fields, FIELD_NAMES.ASSIGNMENT_NAME);
         if (!assign) return;
 
+        // Extract homework record ID (linked record field returns array)
+        const homeworkLinkField = extractFirstAvailable(r.fields, FIELD_NAMES.PROBLEM_HOMEWORK_LINK);
+        const homeworkRecordId = Array.isArray(homeworkLinkField) ? homeworkLinkField[0] : homeworkLinkField;
+
         // Store metadata
         if (!assignmentMeta.has(assign)) {
           assignmentMeta.set(assign, {
             name: assign,
             unit: extractFirstAvailable(r.fields, FIELD_NAMES.UNIT),
             lesson: extractFirstAvailable(r.fields, FIELD_NAMES.LESSON),
-            homeworkNameId: extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME)
+            homeworkNameId: homeworkRecordId
           });
+          console.log(`📚 Loaded assignment: ${assign} (Unit ${extractFirstAvailable(r.fields, FIELD_NAMES.UNIT)}, Lesson ${extractFirstAvailable(r.fields, FIELD_NAMES.LESSON)}) - Homework ID: ${homeworkRecordId}`);
         }
 
         // Update homework link if later records contain it
         const meta = assignmentMeta.get(assign);
-        if (!meta.homeworkNameId) {
-          meta.homeworkNameId = extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_HOMEWORK_NAME);
+        if (!meta.homeworkNameId && homeworkRecordId) {
+          meta.homeworkNameId = homeworkRecordId;
+          console.log(`📚 Updated homework ID for ${assign}: ${homeworkRecordId}`);
         }
 
         if (!map.has(assign)) map.set(assign, []);
@@ -1578,6 +1690,16 @@
         `;
         li.onclick = () => selectAssignment(name, li);
         assignmentList.appendChild(li);
+
+        // Add Formative Feedback sub-item
+        const feedbackLi = document.createElement('li');
+        feedbackLi.className = 'feedback-subitem sidebar-link';
+        feedbackLi.innerHTML = `
+          <span class="feedback-icon">🤖</span>
+          <span>Formative Feedback</span>
+        `;
+        feedbackLi.onclick = () => selectFormativeFeedback(lesson, name, feedbackLi);
+        assignmentList.appendChild(feedbackLi);
       });
     }
 
@@ -1609,6 +1731,20 @@
 
       renderUnitOverview(unit);
       switchView('dashboard');
+    }
+
+    function selectFormativeFeedback(lesson, assignmentName, element) {
+      state.currentLesson = lesson;
+      state.currentAssignment = assignmentName;
+      state.currentUnit = null;
+
+      // Update Sidebar UI
+      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+      if (element) element.classList.add('active');
+
+      // Render AI Feedback Page
+      renderAIFeedbackPage(lesson, assignmentName);
+      switchView('aiFeedback');
     }
 
     function switchView(viewName) {
@@ -2123,18 +2259,19 @@
 
       document.getElementById('dash-title').textContent = resolvedTitle;
 
-      if (aiAnalysisBtn) {
-        aiAnalysisBtn.disabled = historyItems.length === 0;
-        aiAnalysisBtn.title = historyItems.length ? 'Send your records for AI-powered study tips' : 'No feedback to analyze yet';
-        aiAnalysisBtn.onclick = () => requestAnalysis(historyItems, {
-          type: resolvedContextType,
-          assignment: resolvedContextType === 'assignment' ? assignment : null,
-          unit: resolvedUnit,
-          title: resolvedTitle
-        });
-      }
+      // Old AI analysis button setup - removed in favor of Formative Feedback sidebar links
+      // if (aiAnalysisBtn) {
+      //   aiAnalysisBtn.disabled = historyItems.length === 0;
+      //   aiAnalysisBtn.title = historyItems.length ? 'Send your records for AI-powered study tips' : 'No feedback to analyze yet';
+      //   aiAnalysisBtn.onclick = () => requestAnalysis(historyItems, {
+      //     type: resolvedContextType,
+      //     assignment: resolvedContextType === 'assignment' ? assignment : null,
+      //     unit: resolvedUnit,
+      //     title: resolvedTitle
+      //   });
+      // }
 
-      renderAnalysisInlineForContext(contextKey, resolvedTitle);
+      // renderAnalysisInlineForContext(contextKey, resolvedTitle);
 
       const { concepts, percentages, stats, conceptCounts } = getHistoryStats(historyItems);
 
@@ -2148,18 +2285,18 @@
       const summary = document.getElementById('overall-summary');
       summary.innerHTML = `
         <div class="stat-card">
-          <div class="stat-label">Overall responses</div>
+          <div class="stat-label">Total Responses</div>
           <div class="stat-value">${stats.total}</div>
           <div class="stat-help">Entries counted in this view</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Confident</div>
-          <div class="stat-value">${Math.round(percentages.confident)}%</div>
+          <div class="stat-value text-success">${Math.round(percentages.confident)}%</div>
           <div class="stat-help">${stats.confident} marked confident</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Needs review</div>
-          <div class="stat-value">${Math.round(percentages.unsure)}%</div>
+        <div class="stat-card alert-card">
+          <div class="stat-label" style="color:var(--danger-color)">Needs Review</div>
+          <div class="stat-value text-danger">${Math.round(percentages.unsure)}%</div>
           <div class="stat-help">${stats.unsure} struggled responses</div>
         </div>
       `;
@@ -2216,13 +2353,24 @@
           lessonStats.forEach(({ lesson, percentages, stats }) => {
             const card = document.createElement('div');
             card.className = 'lesson-card';
+
+            // Determine highlighting
+            const confidentHighlight = percentages.confident > 70 ? 'stat-highlight-success' : '';
+            const struggledHighlight = percentages.unsure > 40 ? 'stat-highlight-danger' : '';
+
             card.innerHTML = `
-              <h4 class="lesson-title">Lesson ${lesson}</h4>
+              <div class="lesson-header">
+                <div class="lesson-title">Lesson ${lesson}</div>
+                <div class="lesson-count">${stats.total} Response${stats.total !== 1 ? 's' : ''}</div>
+              </div>
               <div class="lesson-meta">
-                <span class="lesson-pill">${Math.round(percentages.confident)}% confident</span>
-                <span>Okay: ${Math.round(percentages.okay)}%</span>
-                <span>Struggled: ${Math.round(percentages.unsure)}%</span>
-                <span>${stats.total} responses</span>
+                <span class="${confidentHighlight}">Confident: ${Math.round(percentages.confident)}%</span>
+                <span class="${struggledHighlight}">Struggled: ${Math.round(percentages.unsure)}%</span>
+              </div>
+              <div class="mini-progress-bg">
+                ${percentages.confident > 0 ? `<div class="bar-segment confident" style="width: ${percentages.confident}%"></div>` : ''}
+                ${percentages.okay > 0 ? `<div class="bar-segment okay" style="width: ${percentages.okay}%"></div>` : ''}
+                ${percentages.unsure > 0 ? `<div class="bar-segment unsure" style="width: ${percentages.unsure}%"></div>` : ''}
               </div>
             `;
             lessonList.appendChild(card);
@@ -2387,7 +2535,739 @@
       else alert('Email not found in roster.');
     };
 
+    // --- AI Formative Feedback Functions ---
+
+    async function renderAIFeedbackPage(lesson, assignmentName) {
+      const assignmentMeta = state.assignmentMeta.get(assignmentName);
+      const unit = assignmentMeta?.unit;
+
+      // Update page title
+      document.getElementById('ai-feedback-title').textContent = `AI Formative Feedback - Lesson ${lesson}`;
+      document.getElementById('ai-feedback-meta').textContent = assignmentName;
+
+      // Check if AI feedback exists for this lesson
+      const lessonKey = `${state.currentUser.id}_${unit}_${lesson}`;
+
+      setLoading(true, 'Checking for existing feedback...');
+      try {
+        await fetchAIFeedback(lessonKey);
+        const existingFeedback = state.aiFeedbackByLesson.get(lessonKey);
+
+        if (existingFeedback) {
+          // Show dashboard with existing feedback
+          document.getElementById('ai-feedback-generate').style.display = 'none';
+          document.getElementById('ai-feedback-dashboard').style.display = 'block';
+          renderFeedbackDashboard(existingFeedback, 'ai-feedback-dashboard');
+        } else {
+          // Show generate UI
+          document.getElementById('ai-feedback-generate').style.display = 'block';
+          document.getElementById('ai-feedback-dashboard').style.display = 'none';
+
+          // Set up generate button
+          document.getElementById('btn-generate-feedback').onclick = () =>
+            generateAIFeedback(lesson, assignmentName, unit, lessonKey);
+        }
+      } catch (error) {
+        console.error('Error loading AI feedback:', error);
+        alert('Error loading feedback data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function fetchAIFeedback(lessonKey) {
+      if (!CONFIG.TABLES.AI_FEEDBACK) return;
+
+      try {
+        const formula = `AND({StudentID} = '${state.currentUser.id}', {LessonKey} = '${lessonKey}')`;
+        const records = await airtableFetch(CONFIG.TABLES.AI_FEEDBACK, {
+          filterByFormula: formula,
+          maxRecords: 1
+        });
+
+        if (records.length > 0) {
+          const feedbackData = records[0].fields.FeedbackJSON;
+          if (feedbackData) {
+            state.aiFeedbackByLesson.set(lessonKey, JSON.parse(feedbackData));
+          }
+        }
+      } catch (error) {
+        console.warn('AI Feedback table may not exist yet:', error);
+      }
+    }
+
+    async function generateAIFeedback(lesson, assignmentName, unit, lessonKey) {
+      // Gather homework history for this specific unit + lesson combination
+      console.log(`🔍 Filtering for Unit ${unit}, Lesson ${lesson}`);
+
+      const historyItems = state.history.filter(h => {
+        const itemUnit = h.unit || state.assignmentMeta.get(h.assignment)?.unit;
+        const itemLesson = h.lesson || state.assignmentMeta.get(h.assignment)?.lesson;
+
+        // Must match BOTH unit and lesson to avoid mixing 3.4 with 4.4, etc.
+        const matches = itemUnit === unit && itemLesson === lesson;
+
+        if (matches) {
+          console.log(`  ✅ Including: ${h.assignment} (Unit ${itemUnit}, Lesson ${itemLesson})`);
+        }
+
+        return matches;
+      });
+
+      console.log(`📊 Found ${historyItems.length} feedback items for Unit ${unit}, Lesson ${lesson}`);
+
+      if (historyItems.length === 0) {
+        alert('No homework feedback found for this lesson. Please submit homework feedback first.');
+        return;
+      }
+
+      // Get homework record ID from assignment metadata
+      const assignmentMetadata = state.assignmentMeta.get(assignmentName);
+      const homeworkRecordId = assignmentMetadata?.homeworkNameId;
+
+      console.log(`📝 Assignment: ${assignmentName}`);
+      console.log(`📝 Assignment Metadata:`, assignmentMetadata);
+      console.log(`📝 Homework Record ID: ${homeworkRecordId}`);
+
+      // Build payload for N8N
+      const payload = {
+        student_name: state.currentUser.name,
+        assignmentMeta: {
+          name: assignmentName,
+          unit: unit,
+          lesson: lesson,
+          homework_id: homeworkRecordId
+        },
+        history: historyItems.map(h => ({
+          feedback: h.feedback,
+          problem: {
+            description: h.problem?.description || '',
+            concept: h.problem?.concept || ''
+          }
+        }))
+      };
+
+      setLoading(true, 'Generating AI feedback (this may take 1-2 minutes)...');
+
+      // Test mode with sample data
+      if (USE_SAMPLE_FEEDBACK_DATA) {
+        setTimeout(() => {
+          const sampleResponse = {
+            student_name: state.currentUser.name,
+            session_title: `Lesson ${lesson} Review`,
+            notes_review: [
+              {
+                sentence: "The slope-intercept form of a line is _____ where m is the slope.",
+                correct_term: "y = mx + b",
+                hint: "Think about the formula we use most often for graphing lines"
+              },
+              {
+                sentence: "To find the slope between two points, we use the formula _____.",
+                correct_term: "rise over run",
+                hint: "Remember: change in y divided by change in x"
+              }
+            ],
+            practice_deck: [
+              {
+                type: "equation_fill",
+                title: "Complete the Equation",
+                tag: "Structure",
+                instruction: "What is the correct form of the point-slope formula?",
+                equation_latex: "y - y_1 = m(x - x_1)",
+                options: [
+                  { value: "y - y₁ = m(x - x₁)", correct: true },
+                  { value: "y + y₁ = m(x + x₁)", correct: false },
+                  { value: "y = mx + b", correct: false }
+                ],
+                feedback_title: "Perfect!",
+                feedback_text: "The point-slope form uses a known point (x₁, y₁) and the slope m to write the equation of a line."
+              },
+              {
+                type: "drill",
+                title: "Practice Problem",
+                tag: "Skill",
+                instruction: "Try this problem step-by-step:",
+                problem_latex: "\\text{Find the equation of a line with slope } 2 \\text{ passing through } (3, 4)",
+                step_by_step_latex: "\\begin{align*} y - y_1 &= m(x - x_1) \\\\ y - 4 &= 2(x - 3) \\\\ y - 4 &= 2x - 6 \\\\ y &= 2x - 2 \\end{align*}",
+                feedback_text: "Remember to substitute the slope and point values into the point-slope form, then simplify to slope-intercept form."
+              }
+            ]
+          };
+
+          // Store in state and render
+          state.aiFeedbackByLesson.set(lessonKey, sampleResponse);
+
+          // Switch to dashboard view
+          document.getElementById('ai-feedback-generate').style.display = 'none';
+          document.getElementById('ai-feedback-dashboard').style.display = 'block';
+          renderFeedbackDashboard(sampleResponse, 'ai-feedback-dashboard');
+
+          setLoading(false);
+        }, 1500); // Simulate network delay
+        return;
+      }
+
+      // Production mode: Use fetch to call N8N webhook
+      console.log('📤 Sending payload to N8N:', FORMATIVE_FEEDBACK_WEBHOOK_URL);
+      console.log('📦 Payload:', payload);
+
+      try {
+        // Send to N8N via fetch
+        const response = await fetch(FORMATIVE_FEEDBACK_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ payload: JSON.stringify(payload) })
+        });
+
+        console.log('📥 Response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`N8N returned status ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        console.log('📥 Raw response from N8N:', responseData);
+
+        // Parse N8N's nested response format
+        // Format can be: { output: [{ content: [{ text: {...} }] }] }
+        // Or: [{ output: [{ content: [{ text: {...} }] }] }]
+        let aiResponse;
+
+        // Try format 1: { output: [...] } (object at top level)
+        if (responseData.output?.[0]?.content?.[0]?.text) {
+          console.log('📦 Extracting from N8N wrapper format (object)');
+          aiResponse = responseData.output[0].content[0].text;
+        }
+        // Try format 2: [{ output: [...] }] (array at top level)
+        else if (Array.isArray(responseData) && responseData[0]?.output?.[0]?.content?.[0]?.text) {
+          console.log('📦 Extracting from N8N wrapper format (array)');
+          aiResponse = responseData[0].output[0].content[0].text;
+        }
+        // Try format 3: Direct data (no wrapper)
+        else if (responseData.student_name && (responseData.practice_deck || responseData.notes_review)) {
+          console.log('📦 Data is already in correct format');
+          aiResponse = responseData;
+        }
+        // Unrecognized format
+        else {
+          console.error('❌ Unrecognized response format:', responseData);
+          console.error('Expected structure with: output[0].content[0].text or direct student_name + practice_deck');
+          throw new Error('Unrecognized response format from N8N. Check console for details.');
+        }
+
+        console.log('✅ Extracted AI response:', aiResponse);
+
+        // Validate required fields
+        if (!aiResponse.practice_deck && !aiResponse.notes_review) {
+          throw new Error('Response missing practice_deck or notes_review');
+        }
+
+        // Save to Airtable if table exists
+        if (CONFIG.TABLES.AI_FEEDBACK) {
+          try {
+            await airtableCreate(CONFIG.TABLES.AI_FEEDBACK, {
+              records: [{
+                fields: {
+                  StudentID: state.currentUser.id,
+                  LessonKey: lessonKey,
+                  Unit: unit,
+                  Lesson: lesson,
+                  FeedbackJSON: JSON.stringify(aiResponse),
+                  CreatedAt: new Date().toISOString()
+                }
+              }],
+              typecast: true
+            });
+            console.log('💾 Saved to Airtable');
+          } catch (dbError) {
+            console.warn('Could not save to database:', dbError);
+          }
+        }
+
+        // Store in state and render
+        state.aiFeedbackByLesson.set(lessonKey, aiResponse);
+
+        // Switch to dashboard view
+        document.getElementById('ai-feedback-generate').style.display = 'none';
+        document.getElementById('ai-feedback-dashboard').style.display = 'block';
+        renderFeedbackDashboard(aiResponse, 'ai-feedback-dashboard');
+
+      } catch (error) {
+        console.error('❌ Error generating AI feedback:', error);
+
+        if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+          alert(`CORS Error: Your N8N webhook needs CORS enabled.\n\nIn N8N:\n1. Open your webhook node\n2. Add a "Set" node after the webhook\n3. Set response headers:\n   - Access-Control-Allow-Origin: *\n   - Access-Control-Allow-Methods: POST, OPTIONS\n4. Or use N8N's built-in CORS settings if available`);
+        } else {
+          alert(`Error generating feedback: ${error.message}\n\nCheck the browser console (F12) for details.`);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    /**
+     * MAIN RENDER FUNCTION FOR AI FEEDBACK DASHBOARD
+     * Renders the interactive feedback dashboard with all components
+     */
+    function renderFeedbackDashboard(data, containerId = 'ai-feedback-dashboard') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        // 1. Build HTML
+        const html = `
+            <div class="space-y-8 animate-fade-in font-sans text-slate-800" style="padding: 24px;">
+                <!-- Dynamic Header -->
+                <div class="flex justify-between items-end border-b border-slate-200 pb-4" style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900" style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Feedback Dashboard</h2>
+                        <p class="text-slate-500 text-sm" style="color: #64748b; font-size: 0.875rem;">Analysis for ${data.student_name || 'Student'}</p>
+                    </div>
+                    <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wide" style="background: #e0e7ff; color: #4338ca; font-size: 0.75rem; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase;">
+                        ${data.session_title || 'Personalized Review'}
+                    </span>
+                </div>
+
+                ${_renderNotesSection(data.notes_review)}
+                ${_renderPracticeDeck(data.practice_deck)}
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        // 2. Post-Render: Graphing & MathJax
+        requestAnimationFrame(() => {
+            _drawAllGraphs();
+            if (window.MathJax) window.MathJax.typesetPromise([container]);
+        });
+    }
+
+    /* --- SECTION RENDERERS --- */
+
+    function _renderNotesSection(notes) {
+        if (!notes || !notes.length) return '';
+
+        const cards = notes.map(note => {
+            const parts = note.sentence.split('_____');
+            return `
+            <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-300 transition" style="padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                <p class="leading-loose text-lg text-slate-700" style="line-height: 2; font-size: 1.125rem; color: #334155;">
+                    ${parts[0]}
+                    <input type="text" data-correct="${note.correct_term}" placeholder="?"
+                        class="ai-note-input" style="display: inline-block; min-width: 80px; border-bottom: 2px solid #c7d2fe; background: rgba(99, 102, 241, 0.05); text-align: center; font-weight: 700; color: #4f46e5; margin: 0 4px; padding: 0 4px; border-radius: 4px 4px 0 0; outline: none;">
+                    ${parts[1] || ''}
+                </p>
+                <div class="mt-3 flex justify-between items-center h-6" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; height: 24px;">
+                    <span class="text-xs text-slate-400 italic hint hidden" style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">
+                        💡 ${note.hint}
+                    </span>
+                    <span class="feedback-msg text-sm font-bold ml-auto" style="font-size: 0.875rem; font-weight: 700; margin-left: auto;"></span>
+                </div>
+            </div>`;
+        }).join('');
+
+        return `
+        <section class="bg-slate-50 rounded-2xl border border-slate-200 p-6" style="background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 32px;">
+            <div class="flex items-center gap-2 mb-4 text-slate-700" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #334155;">
+                <div class="bg-white p-2 rounded-lg shadow-sm border border-slate-100 text-indigo-600" style="background: white; padding: 8px; border-radius: 8px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); border: 1px solid #f1f5f9; color: #4f46e5;">📖</div>
+                <h3 class="font-bold text-lg" style="font-weight: 700; font-size: 1.125rem;">Guided Notes Check</h3>
+            </div>
+            <div class="grid gap-4 md:grid-cols-1 lg:grid-cols-2" style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">${cards}</div>
+            <div class="mt-4 text-right flex justify-end gap-4" style="margin-top: 16px; text-align: right; display: flex; justify-content: flex-end; gap: 16px;">
+                <button onclick="_toggleHints(this)" class="text-xs text-slate-400 hover:text-indigo-600 font-medium underline underline-offset-2" style="font-size: 0.75rem; color: #94a3b8; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; background: none; border: none; cursor: pointer;">Show Hints</button>
+                <button onclick="_checkNotesInputs(this)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md" style="background: #4f46e5; color: white; padding: 8px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">Check Answers</button>
+            </div>
+        </section>`;
+    }
+
+    function _renderPracticeDeck(cards) {
+        if (!cards || !cards.length) return '';
+
+        const cardHtml = cards.map((card, idx) => {
+            const uid = `card-${idx}`;
+
+            // Dispatcher
+            if (card.type === 'find_error') return _cardWrapper(card, _tplFindError(card, uid), 'red', 'Analysis');
+            if (card.type === 'graph_match') return _cardWrapper(card, _tplGraphMatch(card, uid), 'blue', 'Visual');
+            if (card.type === 'graph_context') return _cardWrapper(card, _tplGraphContext(card, uid), 'purple', 'Context');
+            if (card.type === 'equation_fill') return _cardWrapper(card, _tplEquationFill(card, uid), 'teal', 'Structure');
+            if (card.type === 'drill') return _cardWrapper(card, _tplDrill(card, uid), 'emerald', 'Skill');
+            if (card.type === 'mcq') return _cardWrapper(card, _tplMCQ(card, uid), 'indigo', 'Review');
+            return '';
+        }).join('');
+
+        return `<div style="display: flex; flex-direction: column; gap: 32px; margin-top: 32px;">${cardHtml}</div>`;
+    }
+
+    function _cardWrapper(card, bodyHtml, colorName, defaultTag) {
+        const colors = {
+            red: { dot: '#ef4444', badge: '#fee2e2', badgeText: '#991b1b' },
+            blue: { dot: '#3b82f6', badge: '#dbeafe', badgeText: '#1e40af' },
+            purple: { dot: '#a855f7', badge: '#f3e8ff', badgeText: '#6b21a8' },
+            teal: { dot: '#14b8a6', badge: '#ccfbf1', badgeText: '#115e59' },
+            emerald: { dot: '#10b981', badge: '#d1fae5', badgeText: '#065f46' },
+            indigo: { dot: '#6366f1', badge: '#e0e7ff', badgeText: '#4338ca' }
+        };
+        const c = colors[colorName];
+
+        return `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" style="background: white; border-radius: 16px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); border: 1px solid #e2e8f0; overflow: hidden;">
+            <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center" style="background: rgba(248, 250, 252, 0.5); padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 12px;">
+                    <span style="width: 8px; height: 8px; border-radius: 9999px; background: ${c.dot};"></span>
+                    <span style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">${card.title}</span>
+                </div>
+                <span style="background: ${c.badge}; color: ${c.badgeText}; font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">${card.tag || defaultTag}</span>
+            </div>
+            <div style="padding: 24px;">${bodyHtml}</div>
+        </div>`;
+    }
+
+    /* --- TEMPLATES --- */
+
+    function _tplFindError(card, id) {
+        const gridCols = card.grid_cols || 2;
+
+        // Detect if this is equation steps (long text) vs matrix values (short)
+        const isEquationSteps = card.grid_values.some(val => val.length > 10 || val.includes('=') || val.includes('\\'));
+
+        let grid;
+        if (isEquationSteps) {
+            // Render as vertical list of equation steps with LaTeX
+            grid = `<div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 300px;">`;
+            card.grid_values.forEach((val, i) => {
+                const isErr = (i === card.error_index);
+                grid += `<button onclick="_handleGridClick(this, ${isErr}, '${id}-fb')" style="width: 100%; min-height: 60px; padding: 12px 16px; background: white; border-radius: 8px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); display: flex; align-items: center; justify-content: center; border: 2px solid #e2e8f0; font-size: 1rem; cursor: pointer; text-align: center; transition: all 0.2s;">$$${val}$$</button>`;
+            });
+            grid += `</div>`;
+        } else {
+            // Render as compact grid for short values (original behavior)
+            grid = `<div style="display: inline-grid; gap: 8px; padding: 12px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; grid-template-columns: repeat(${gridCols}, minmax(0, 1fr));">`;
+            card.grid_values.forEach((val, i) => {
+                const isErr = (i === card.error_index);
+                grid += `<button onclick="_handleGridClick(this, ${isErr}, '${id}-fb')" style="width: 48px; height: 48px; background: white; border-radius: 4px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); font-family: serif; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; font-size: 1.125rem; cursor: pointer;">${val}</button>`;
+            });
+            grid += `</div>`;
+        }
+
+        return `
+            <div style="display: flex; flex-direction: ${isEquationSteps ? 'column' : 'row'}; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <div style="text-align: center; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Problem</div>
+                    <div style="font-size: 1.25rem;">$$${card.problem_latex}$$</div>
+                </div>
+                ${isEquationSteps ? '' : '<div style="font-size: 1.5rem; color: #cbd5e1;">→</div>'}
+                <div style="text-align: center; ${isEquationSteps ? 'width: 100%; max-width: 500px;' : ''}">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #f87171; text-transform: uppercase; margin-bottom: 8px;">Student Answer</div>
+                    ${grid}
+                </div>
+            </div>
+            ${_tplFeedback(id, card.feedback_title, card.feedback_text, 'red')}
+        `;
+    }
+
+    function _tplEquationFill(card, id) {
+        let chips = `<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px;">`;
+        card.options.forEach(opt => {
+            chips += `<button onclick="_handleEqFill(this, ${opt.correct}, '${id}-fb')" class="eq-chip" style="padding: 8px 24px; background: white; border: 2px solid #f1f5f9; border-radius: 9999px; font-weight: 700; color: #475569; min-width: 70px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); cursor: pointer;">${opt.value}</button>`;
+        });
+        chips += `</div>`;
+        return `
+            <div style="text-align: center;">
+                <p style="color: #475569; margin-bottom: 24px; font-weight: 500;">${card.instruction}</p>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); display: inline-block;">
+                    <div style="font-size: 1.5rem;">$$${card.equation_latex}$$</div>
+                </div>
+                ${chips}
+            </div>
+            ${_tplFeedback(id, card.feedback_title, card.feedback_text, 'teal')}
+        `;
+    }
+
+    function _tplGraphMatch(card, id) {
+        let opts = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-top: 24px;">`;
+        card.options.forEach(opt => {
+            const p = JSON.stringify(opt.graph_params).replace(/"/g, '&quot;');
+            opts += `
+            <div onclick="_handleMatchClick(this, ${opt.correct})" class="match-opt" style="cursor: pointer; border: 2px solid #f1f5f9; border-radius: 12px; overflow: hidden; height: 144px; position: relative; background: white;">
+                <canvas class="ai-mini-graph" style="width: 100%; height: 100%;" data-params="${p}"></canvas>
+                <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(241, 245, 249, 0.9); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; color: #64748b;">${opt.id}</div>
+            </div>`;
+        });
+        opts += `</div>`;
+        return `
+            <p style="text-align: center; font-size: 1.25rem; font-weight: 500; color: #1e293b;">Which graph shows $${card.question_latex}$?</p>
+            ${opts}
+        `;
+    }
+
+    function _tplGraphContext(card, id) {
+        const c = JSON.stringify(card.graph_config).replace(/"/g, '&quot;');
+        let btns = `<div style="display: flex; flex-direction: column; gap: 12px;">`;
+        card.options.forEach(opt => {
+            btns += `<button onclick="_handleContextClick(this, ${opt.correct}, '${id}-fb')" class="ctx-btn" style="width: 100%; text-align: left; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; color: #475569; font-weight: 500; background: white; cursor: pointer;">${opt.text}</button>`;
+        });
+        btns += `</div>`;
+        return `
+            <p style="margin-bottom: 24px; font-weight: 500; color: #1e293b; font-size: 1.125rem;">${card.instruction}</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; align-items: center;">
+                <div style="height: 256px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; padding: 8px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                    <canvas class="ai-context-graph" style="width: 100%; height: 100%;" data-config="${c}"></canvas>
+                </div>
+                <div>${btns}</div>
+            </div>
+            ${_tplFeedback(id, "Insight", card.feedback_text, 'purple')}
+        `;
+    }
+
+    function _tplDrill(card, id) {
+        return `
+            <div style="text-align: center; max-width: 672px; margin: 0 auto;">
+                <p style="font-size: 1.125rem; font-weight: 500; color: #1e293b; margin-bottom: 24px;">${card.instruction}</p>
+                <div style="background: rgba(209, 250, 229, 0.3); border: 1px solid #a7f3d0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <div style="font-size: 1.5rem; margin-bottom: 16px;">$$${card.problem_latex}$$</div>
+                    <button onclick="_revealDrill('${id}')" id="${id}-btn" style="background: #10b981; color: white; padding: 8px 24px; border-radius: 9999px; font-size: 0.875rem; font-weight: 700; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); border: none; cursor: pointer;">
+                        Show Step-by-Step
+                    </button>
+                </div>
+                <div id="${id}" class="hidden" style="display: none; text-align: left; background: white; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                    <div style="font-size: 1.125rem; line-height: 1.75; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 16px;">$$${card.step_by_step_latex}$$</div>
+                    <p style="font-size: 0.875rem; color: #059669; font-weight: 500;">ℹ️ ${card.feedback_text}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function _tplMCQ(card, id) {
+        let btns = `<div style="display: flex; flex-direction: column; gap: 12px; max-width: 600px; margin: 0 auto;">`;
+        card.options.forEach(opt => {
+            btns += `<button onclick="_handleMCQClick(this, ${opt.correct}, '${id}-fb')" class="mcq-btn" style="width: 100%; text-align: left; padding: 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; color: #475569; font-weight: 500; background: white; cursor: pointer; transition: all 0.2s;">${opt.text}</button>`;
+        });
+        btns += `</div>`;
+        return `
+            <p style="margin-bottom: 24px; font-weight: 600; color: #1e293b; font-size: 1.125rem; text-align: center;">${card.question}</p>
+            ${btns}
+            ${_tplFeedback(id, "Explanation", card.feedback_text, 'indigo')}
+        `;
+    }
+
+    function _tplFeedback(id, title, text, color) {
+        const colorMap = {
+            red: { border: '#ef4444', text: '#dc2626' },
+            teal: { border: '#14b8a6', text: '#0f766e' },
+            purple: { border: '#a855f7', text: '#7e22ce' },
+            indigo: { border: '#6366f1', text: '#4338ca' }
+        };
+        const c = colorMap[color] || colorMap.teal;
+        return `
+        <div id="${id}-fb" class="hidden" style="display: none; margin-top: 24px; padding: 16px; background: #f8fafc; border-left: 4px solid ${c.border}; border-radius: 0 8px 8px 0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: 700; color: ${c.text};">
+                <span>✓</span> <span>${title}</span>
+            </div>
+            <p style="color: #475569; font-size: 0.875rem;">${text}</p>
+        </div>`;
+    }
+
+    /* --- INTERACTIONS --- */
+
+    function _revealDrill(id) {
+        const el = document.getElementById(id);
+        const btn = document.getElementById(id+'-btn');
+        if (el) el.style.display = 'block';
+        if (btn) btn.style.display = 'none';
+    }
+
+    function _checkNotesInputs(btn) {
+        const section = btn.closest('section');
+        section.querySelectorAll('.ai-note-input').forEach(input => {
+            const correct = input.dataset.correct.toLowerCase();
+            const val = input.value.trim().toLowerCase();
+            const fb = input.parentElement.nextElementSibling.querySelector('.feedback-msg');
+
+            if (val === correct) {
+                input.style.borderColor = '#22c55e';
+                input.style.color = '#22c55e';
+                input.style.background = 'rgba(34, 197, 94, 0.1)';
+                fb.innerHTML = "<span style='color: #22c55e;'>✓</span>";
+            } else {
+                input.style.borderColor = '#ef4444';
+                input.style.color = '#ef4444';
+                input.style.background = 'rgba(239, 68, 68, 0.1)';
+                fb.innerHTML = "<span style='color: #f87171; font-size: 0.75rem;'>Try again</span>";
+            }
+        });
+    }
+
+    function _toggleHints(btn) {
+        const section = btn.closest('section');
+        section.querySelectorAll('.hint').forEach(el => {
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                el.style.display = 'block';
+            } else {
+                el.classList.add('hidden');
+                el.style.display = 'none';
+            }
+        });
+        btn.textContent = btn.textContent === "Show Hints" ? "Hide Hints" : "Show Hints";
+    }
+
+    function _handleGridClick(btn, isCorrect, fbId) {
+        const fb = document.getElementById(fbId);
+
+        // Detect border width (1px for matrix grid, 2px for equation steps)
+        const borderWidth = btn.style.border.includes('2px') ? '2px' : '1px';
+
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+            b.style.background = 'white';
+            b.style.border = `${borderWidth} solid #e2e8f0`;
+            b.style.color = 'inherit';
+        });
+        if (isCorrect) {
+            btn.style.background = '#fee2e2';
+            btn.style.border = `${borderWidth} solid #ef4444`;
+            btn.style.color = '#991b1b';
+            if (fb) fb.style.display = 'block';
+        } else {
+            btn.style.background = '#d1fae5';
+            btn.style.border = `${borderWidth} solid #10b981`;
+            btn.style.color = '#065f46';
+        }
+    }
+
+    function _handleMatchClick(div, isCorrect) {
+        div.parentElement.querySelectorAll('.match-opt').forEach(el => {
+            el.style.outline = 'none';
+        });
+        if (isCorrect) {
+            div.style.outline = '4px solid #10b981';
+        } else {
+            div.style.outline = '4px solid #ef4444';
+        }
+    }
+
+    function _handleContextClick(btn, isCorrect, fbId) {
+        const fb = document.getElementById(fbId);
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+            b.style.background = 'white';
+            b.style.border = '1px solid #e2e8f0';
+        });
+        if (isCorrect) {
+            btn.style.background = '#f3e8ff';
+            btn.style.border = '1px solid #a855f7';
+            if (fb) fb.style.display = 'block';
+        } else {
+            btn.style.background = '#fee2e2';
+            btn.style.border = '1px solid #ef4444';
+        }
+    }
+
+    function _handleEqFill(btn, isCorrect, fbId) {
+        const fb = document.getElementById(fbId);
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+            b.style.background = 'white';
+            b.style.border = '2px solid #f1f5f9';
+            b.style.color = '#475569';
+        });
+        if (isCorrect) {
+            btn.style.background = '#ccfbf1';
+            btn.style.border = '2px solid #14b8a6';
+            btn.style.color = '#115e59';
+            if (fb) fb.style.display = 'block';
+        } else {
+            btn.style.background = '#fee2e2';
+            btn.style.border = '2px solid #ef4444';
+            btn.style.color = '#991b1b';
+        }
+    }
+
+    function _handleMCQClick(btn, isCorrect, fbId) {
+        const fb = document.getElementById(fbId);
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+            b.style.background = 'white';
+            b.style.border = '2px solid #e2e8f0';
+        });
+        if (isCorrect) {
+            btn.style.background = '#e0e7ff';
+            btn.style.border = '2px solid #6366f1';
+            if (fb) fb.style.display = 'block';
+        } else {
+            btn.style.background = '#fee2e2';
+            btn.style.border = '2px solid #ef4444';
+        }
+    }
+
+    /* --- CANVAS ENGINE --- */
+    function _drawAllGraphs() {
+        document.querySelectorAll('.ai-mini-graph').forEach(c => {
+            try {
+                _renderCanvas(c, JSON.parse(c.dataset.params.replace(/&quot;/g, '"')), false);
+            } catch (e) {
+                console.warn('Error rendering mini graph:', e);
+            }
+        });
+        document.querySelectorAll('.ai-context-graph').forEach(c => {
+            try {
+                _renderCanvas(c, JSON.parse(c.dataset.config.replace(/&quot;/g, '"')), true);
+            } catch (e) {
+                console.warn('Error rendering context graph:', e);
+            }
+        });
+    }
+
+    function _renderCanvas(canvas, config, isContext) {
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+        const w = canvas.width, h = canvas.height;
+        const ox = w/2, oy = h/2;
+
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+
+        if (isContext) {
+            const m = 30;
+            ctx.beginPath(); ctx.moveTo(m, 10); ctx.lineTo(m, h-m); ctx.lineTo(w-10, h-m); ctx.stroke();
+            if(config.xlabel) {
+                ctx.fillStyle = '#64748b'; ctx.font = '10px sans-serif';
+                ctx.fillText(config.xlabel, w-50, h-5);
+                ctx.save(); ctx.translate(10, h/2); ctx.rotate(-Math.PI/2);
+                ctx.fillText(config.ylabel, 0, 0); ctx.restore();
+            }
+            if (config.type === 'linear-segment') {
+                const sx = (w - m - 10) / 10, sy = (h - m - 10) / 10;
+                ctx.strokeStyle = '#9333ea'; ctx.lineWidth = 3; ctx.beginPath();
+                config.points.forEach((p, i) => {
+                    const x = m + p[0]*sx, y = (h-m) - p[1]*sy;
+                    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+                });
+                ctx.stroke();
+            }
+        } else {
+            ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(w, oy); ctx.moveTo(ox, 0); ctx.lineTo(ox, h); ctx.stroke();
+            ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.beginPath();
+            const scale = 10;
+            if (config.type === 'linear') {
+                const x1=-10, y1=config.m*x1+config.b;
+                const x2=10, y2=config.m*x2+config.b;
+                ctx.moveTo(ox+x1*scale, oy-y1*scale); ctx.lineTo(ox+x2*scale, oy-y2*scale);
+            }
+            ctx.stroke();
+        }
+    }
+
   </script>
+
+  <!-- MathJax for AI Feedback Dashboard -->
+  <script>
+    window.MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+        startup: { typeset: false }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </body>
 
 </html>
