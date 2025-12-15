@@ -1816,7 +1816,7 @@
       overallSection.innerHTML = `
         <h3 class="overall-title">Overall reflection</h3>
         <label class="comment-label" for="overall-comment">How did this homework feel?</label>
-        <textarea id="overall-comment" class="comment-box" placeholder="Share anything that stood out..." required></textarea>
+        <textarea id="overall-comment" class="comment-box" placeholder="Share anything that stood out..."></textarea>
         <div class="comment-label" style="margin-bottom: 2px;">Overall confidence (0-5 stars)</div>
         <div id="rating-row" class="rating-row"></div>
       `;
@@ -1860,11 +1860,6 @@
         return;
       }
 
-      if (!state.overallComment.trim()) {
-        alert('Please add your overall comment.');
-        return;
-      }
-
       if (state.overallRating === null) {
         alert('Please add your overall confidence rating.');
         return;
@@ -1893,10 +1888,11 @@
         });
 
         // Overall reflection record (no Homework Problem link)
+        const overallCommentText = state.overallComment.trim();
         records.push({
           fields: {
             [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
-            [resolvedFields.feedbackComment]: state.overallComment.trim(),
+            ...(overallCommentText && resolvedFields.feedbackComment ? { [resolvedFields.feedbackComment]: overallCommentText } : {}),
             [resolvedFields.feedbackRating]: state.overallRating,
             [resolvedFields.feedbackText]: 'Overall reflection',
             ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {}),
