@@ -725,8 +725,32 @@
       line-height: 1.4;
     }
 
-    .btn-solution {
+    .solution-controls {
       margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-reveal-answer {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: #f0f9ff;
+      color: var(--pacifica-navy);
+      border: 1px solid var(--pacifica-sky);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-reveal-answer:hover {
+      background: var(--pacifica-sky);
+      border-color: #a0c5de;
+    }
+
+    .btn-show-solution {
       padding: 6px 12px;
       font-size: 0.85rem;
       background: var(--pacifica-sky);
@@ -738,9 +762,24 @@
       font-weight: 500;
     }
 
-    .btn-solution:hover {
+    .btn-show-solution:hover {
       background: #c8e1f0;
       border-color: #a0c5de;
+    }
+
+    .answer-reveal {
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 6px;
+      color: #166534;
+      font-weight: 500;
+      display: none;
+    }
+
+    .answer-reveal.visible {
+      display: block;
     }
 
     .comment-box {
@@ -1355,6 +1394,7 @@
       currentLesson: null, // For AI feedback page
       responses: {}, // For the form
       problemComments: {},
+      solutionViewed: {}, // Track which problems had solution viewed
       overallComment: '',
       overallRating: null
     };
@@ -1734,6 +1774,7 @@
       container.innerHTML = '';
       state.responses = {};
       state.problemComments = {};
+      state.solutionViewed = {};
       state.overallComment = '';
       state.overallRating = null;
 
@@ -1756,7 +1797,13 @@
               ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
             </div>
             ${p.description ? `<div class="problem-description">${p.description}</div>` : ''}
-            <button class="btn-solution" data-problem-id="${p.id}" data-problem-label="${p.label}">View Solution</button>
+            <div class="solution-controls">
+              <button class="btn-reveal-answer" data-problem-id="${p.id}">Reveal Answer</button>
+              <button class="btn-show-solution" data-problem-id="${p.id}" data-problem-label="${p.label}">Show Solution</button>
+            </div>
+            <div class="answer-reveal" id="answer-${p.id}">
+              <strong>Answer:</strong> $x = 4$
+            </div>
         `;
         row.appendChild(problemCell);
 
@@ -1874,10 +1921,25 @@
 
       renderMath(grid);
 
-      // Add solution button event listeners
-      grid.querySelectorAll('.btn-solution').forEach(btn => {
+      // Add reveal answer button event listeners
+      grid.querySelectorAll('.btn-reveal-answer').forEach(btn => {
         btn.onclick = () => {
+          const problemId = btn.dataset.problemId;
+          const answerDiv = document.getElementById(`answer-${problemId}`);
+          answerDiv.classList.add('visible');
+          renderMath(answerDiv);
+          btn.disabled = true;
+          btn.textContent = 'Answer Revealed';
+          btn.style.opacity = '0.6';
+        };
+      });
+
+      // Add show solution button event listeners
+      grid.querySelectorAll('.btn-show-solution').forEach(btn => {
+        btn.onclick = () => {
+          const problemId = btn.dataset.problemId;
           const problemLabel = btn.dataset.problemLabel;
+          state.solutionViewed[problemId] = true;
           openSolutionModal(problemLabel);
         };
       });
@@ -1912,7 +1974,12 @@
         const records = problems.map(p => {
           const feedbackLabel = RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label;
           const commentText = (state.problemComments[p.id] || '').trim();
-          const feedbackText = commentText ? `${feedbackLabel} — ${commentText}` : feedbackLabel;
+          let feedbackText = commentText ? `${feedbackLabel} — ${commentText}` : feedbackLabel;
+
+          // Append solution viewed indicator if applicable
+          if (state.solutionViewed[p.id]) {
+            feedbackText += ' (Showed Solution)';
+          }
 
           return {
             fields: {
