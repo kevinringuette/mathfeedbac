@@ -725,6 +725,24 @@
       line-height: 1.4;
     }
 
+    .btn-solution {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: var(--pacifica-sky);
+      color: var(--pacifica-navy);
+      border: 1px solid #b8d4e8;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-solution:hover {
+      background: #c8e1f0;
+      border-color: #a0c5de;
+    }
+
     .comment-box {
       width: 100%;
       margin-top: 10px;
@@ -1253,6 +1271,18 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="solution-modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="solution-modal-title">
+      <div class="modal-header">
+        <h3 id="solution-modal-title">Solution</h3>
+        <button class="modal-close" id="solution-modal-close" aria-label="Close solution">✕</button>
+      </div>
+      <div class="modal-body" id="solution-modal-body">
+        <!-- Solution content will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
   <!-- Cross-origin safe webhook delivery -->
   <form id="analysis-form" method="POST" target="analysis-frame" style="display: none;" enctype="multipart/form-data" accept-charset="UTF-8">
     <textarea name="payload" id="analysis-payload" hidden></textarea>
@@ -1726,6 +1756,7 @@
               ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
             </div>
             ${p.description ? `<div class="problem-description">${p.description}</div>` : ''}
+            <button class="btn-solution" data-problem-id="${p.id}" data-problem-label="${p.label}">View Solution</button>
         `;
         row.appendChild(problemCell);
 
@@ -1842,6 +1873,14 @@
       };
 
       renderMath(grid);
+
+      // Add solution button event listeners
+      grid.querySelectorAll('.btn-solution').forEach(btn => {
+        btn.onclick = () => {
+          const problemLabel = btn.dataset.problemLabel;
+          openSolutionModal(problemLabel);
+        };
+      });
 
       document.getElementById('btn-cancel-upload').onclick = () => switchView('empty');
 
@@ -2403,6 +2442,74 @@
         });
       }
     }
+
+    function openSolutionModal(problemLabel) {
+      const modal = document.getElementById('solution-modal');
+      const modalTitle = document.getElementById('solution-modal-title');
+      const modalBody = document.getElementById('solution-modal-body');
+
+      modalTitle.textContent = `Solution: ${problemLabel}`;
+
+      // Sample MathType/LaTeX content
+      modalBody.innerHTML = `
+        <div style="line-height: 1.8;">
+          <p><strong>Step 1:</strong> Start by isolating the variable term.</p>
+          <p style="margin-left: 20px;">$$2x + 5 = 13$$</p>
+
+          <p><strong>Step 2:</strong> Subtract 5 from both sides.</p>
+          <p style="margin-left: 20px;">$$2x + 5 - 5 = 13 - 5$$</p>
+          <p style="margin-left: 20px;">$$2x = 8$$</p>
+
+          <p><strong>Step 3:</strong> Divide both sides by 2.</p>
+          <p style="margin-left: 20px;">$$\\frac{2x}{2} = \\frac{8}{2}$$</p>
+          <p style="margin-left: 20px;">$$x = 4$$</p>
+
+          <p><strong>Step 4:</strong> Verify the solution by substituting back.</p>
+          <p style="margin-left: 20px;">$$2(4) + 5 = 8 + 5 = 13$$ ✓</p>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+
+          <p><strong>Additional Example:</strong> Quadratic formula</p>
+          <p style="margin-left: 20px;">For equation $ax^2 + bx + c = 0$, the solution is:</p>
+          <p style="margin-left: 20px;">$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$</p>
+
+          <p><strong>Example with fractions:</strong></p>
+          <p style="margin-left: 20px;">$$\\frac{3}{4}x - \\frac{1}{2} = \\frac{5}{8}$$</p>
+          <p style="margin-left: 20px;">Multiply all terms by 8: $6x - 4 = 5$</p>
+          <p style="margin-left: 20px;">Therefore: $x = \\frac{3}{2}$</p>
+        </div>
+      `;
+
+      // Render the math in the modal
+      renderMath(modalBody);
+
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSolutionModal() {
+      const modal = document.getElementById('solution-modal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Set up solution modal close handlers
+    document.addEventListener('DOMContentLoaded', () => {
+      const solutionModal = document.getElementById('solution-modal');
+      const solutionModalClose = document.getElementById('solution-modal-close');
+
+      if (solutionModalClose) {
+        solutionModalClose.addEventListener('click', closeSolutionModal);
+      }
+
+      if (solutionModal) {
+        solutionModal.addEventListener('click', (event) => {
+          if (event.target === solutionModal) {
+            closeSolutionModal();
+          }
+        });
+      }
+    });
 
     async function airtableFetch(table, params = {}) {
       let allRecords = [];
