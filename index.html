@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Math Homework Feedback</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23092f57'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='32' fill='white' font-family='Arial'%3E%CF%80%3C/text%3E%3C/svg%3E" />
-  <!-- Montserrat font (Gotham alternative) -->
+  <!-- Importing Montserrat as the brand font (Gotham alternative) -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
     integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
@@ -20,7 +20,7 @@
     :root {
       color-scheme: light;
 
-      /* --- PACIFICA BRAND PALETTE --- */
+      /* --- BRAND PALETTE (Pacifica) --- */
       /* Primary */
       --pacifica-navy: #092f57;      /* PMS 540C */
       --pacifica-orange: #e55204;    /* PMS 166C */
@@ -34,50 +34,30 @@
       --tangerine: #f18c20;          /* PMS 144C */
 
       /* --- FUNCTIONAL MAPPINGS --- */
-      --bg: #ffffff;
-      --bg-body: #f8f8f7; /* Very light tint of warm gray */
-      --bg-paper: #ffffff;
+      --bg: #f8f8f7; /* Very light tint of warm gray */
       --sidebar-bg: #f8f9fa;
       --card-bg: #ffffff;
-
       --primary: var(--pacifica-navy);
       --primary-light: #e6f0ff;
       --accent: var(--pacifica-orange);
       --text: var(--pacifica-navy);
-      --text-primary: var(--pacifica-navy);
       --text-secondary: var(--slate);
       --muted: var(--slate);
-      --border: #e5e5e0; /* Lighter version of warm gray */
-      --border-color: #e5e5e0;
+      --border: #e5e5e0; /* Lighter version of warm gray for subtlety */
 
       /* Status Colors mapped to Brand Palette */
-      --success-color: var(--robin-egg);      /* Success/Mastery */
-      --success-bg: #d1fae5;
-      --success-text: #065f46;
-
-      --warning-color: var(--canary);         /* Warning/Okay */
-      --warning-bg: #fef3c7;
-      --warning-text: #92400e;
-
-      --danger-color: var(--pacifica-orange); /* Danger/Struggle */
-      --danger-bg: #fee2e2;
-      --danger-text: #b91c1c;
-
-      /* Confidence scale colors */
-      --status-mastery: var(--robin-egg);
-      --status-proficient: var(--slate);
-      --status-developing: var(--canary);
-      --status-concern: var(--pacifica-orange);
+      --status-mastery: var(--robin-egg);      /* Success/Mastery */
+      --status-proficient: var(--slate);       /* Proficient/Good */
+      --status-developing: var(--canary);      /* Warning/Okay */
+      --status-concern: var(--pacifica-orange); /* Danger/Struggle */
 
       /* Typography */
-      --font-brand: 'Montserrat', sans-serif;
+      --font-brand: 'Montserrat', sans-serif; /* Gotham Alternative */
 
       /* Spacing & Radius */
-      --radius-md: 8px;
       --radius-sm: 4px;
-      --shadow-sm: 0 2px 4px rgba(9, 47, 87, 0.08);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-subtle: 0 2px 4px rgba(9, 47, 87, 0.08);
+      --radius-md: 8px;
+      --shadow-subtle: 0 2px 4px rgba(9, 47, 87, 0.08); /* Navy tinted shadow */
 
       font-family: var(--font-brand);
     }
@@ -107,6 +87,15 @@
       inset: 0;
       /* Prevent body scroll, handle in layout */
       overscroll-behavior: none;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--font-brand);
+      font-weight: 800; /* Gotham Bold feel */
+      color: var(--pacifica-navy);
+      margin-top: 0;
+      letter-spacing: -0.02em;
     }
 
     /* Typography */
@@ -135,10 +124,11 @@
     }
 
     .login-card {
-      background: #fff;
+      background: var(--card-bg);
       padding: 48px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--border);
       text-align: center;
       max-width: 400px;
       width: 100%;
@@ -172,15 +162,17 @@
 
     .sidebar-title {
       font-size: 1.2rem;
-      font-weight: 700;
+      font-weight: 800; /* Gotham Bold feel */
       color: var(--primary);
       margin: 0;
+      letter-spacing: -0.02em;
     }
 
     .sidebar-subtitle {
       font-size: 0.85rem;
       color: var(--muted);
       margin: 4px 0 0;
+      font-weight: 500;
     }
 
     .assignment-list {
@@ -196,8 +188,8 @@
       font-weight: 700;
       color: var(--primary);
       text-transform: uppercase;
-      font-size: 0.8rem;
-      letter-spacing: 0.5px;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
       border-bottom: 1px solid var(--border);
       margin-top: 16px;
     }
@@ -206,7 +198,7 @@
       padding: 8px 16px;
       font-weight: 600;
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       margin-top: 4px;
     }
 
@@ -214,7 +206,7 @@
       padding: 10px 16px 10px 32px;
       /* Indented */
       margin-bottom: 2px;
-      border-radius: 0 4px 4px 0;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
       cursor: pointer;
       font-size: 0.9rem;
       color: var(--text);
@@ -263,9 +255,9 @@
 
     .assignment-item.active {
       background: #e6f0ff;
-      color: var(--primary);
+      color: var(--pacifica-navy);
       font-weight: 600;
-      border-left-color: var(--accent);
+      border-left-color: var(--pacifica-orange);
     }
 
     .status-icon {
@@ -273,7 +265,7 @@
     }
 
     .status-icon.done {
-      color: #4caf50;
+      color: var(--status-mastery);
     }
 
     .status-icon.pending {
@@ -325,9 +317,10 @@
     .empty-state {
       text-align: center;
       padding: 64px 0;
-      background: #fff;
-      border-radius: 12px;
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-subtle);
     }
 
     .empty-icon {
@@ -338,9 +331,10 @@
 
     .empty-title {
       font-size: 1.5rem;
-      font-weight: 700;
+      font-weight: 800; /* Gotham Bold feel */
       color: var(--primary);
       margin: 0 0 8px;
+      letter-spacing: -0.02em;
     }
 
     .empty-desc {
@@ -350,7 +344,7 @@
 
     /* Dashboard Styles - Paper Card */
     .dashboard-card {
-      background: var(--bg-paper);
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 2.5rem;
@@ -367,38 +361,27 @@
     }
 
     .stat-card {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
-      background: var(--bg-card);
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .stat-card.alert-card {
-      border-left: 5px solid var(--danger-color);
+      border-left: 4px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      background: #fff;
     }
 
     .stat-label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--muted);
+      color: var(--text-secondary);
+      font-size: 0.7rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
+      font-weight: 700;
       margin-bottom: 0.5rem;
     }
 
     .stat-value {
-      font-weight: 800;
-      font-size: 2.25rem;
-      color: var(--text);
+      font-weight: 700;
+      font-size: 2.5rem;
+      color: var(--primary);
       margin: 0;
-      line-height: 1.1;
+      line-height: 1;
     }
 
     .stat-value.text-success { color: var(--success-color); }
@@ -420,9 +403,10 @@
 
     .dash-title {
       font-size: 2rem;
-      font-weight: 700;
+      font-weight: 800; /* Gotham Bold feel */
       color: var(--primary);
       margin: 0;
+      letter-spacing: -0.02em;
     }
 
     .dash-meta {
@@ -439,18 +423,24 @@
     }
 
     .btn-ghost {
-      background: transparent;
-      color: var(--primary);
+      background: none;
+      color: var(--pacifica-navy);
       border: 1px solid var(--border);
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 16px;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-brand);
     }
 
     .btn-ghost:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
+      background: #f7fafc;
+      color: var(--pacifica-navy);
+      border-color: var(--pacifica-navy);
     }
 
     .sparkle-icon {
@@ -476,32 +466,15 @@
     .lesson-card {
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 1.25rem;
-      background: var(--bg-card);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .lesson-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1rem;
+      padding: 12px 14px;
+      background: #fdfdfd;
     }
 
     .lesson-title {
-      margin: 0;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--text);
-    }
-
-    .lesson-count {
-      background-color: #f3f4f6;
-      padding: 0.25rem 0.75rem;
-      border-radius: 99px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--muted);
+      margin: 0 0 6px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.02em;
     }
 
     .lesson-meta {
@@ -536,17 +509,18 @@
       align-items: center;
       gap: 6px;
       padding: 6px 10px;
-      background: var(--primary-light);
+      background: rgba(0, 145, 178, 0.1);
       border-radius: 999px;
-      color: var(--primary);
+      color: var(--robin-egg);
       font-weight: 700;
       font-size: 0.9rem;
+      font-family: var(--font-brand);
     }
 
     .next-steps {
       margin-top: 12px;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: var(--radius-md);
       padding: 16px;
       background: #fff7ed;
     }
@@ -554,7 +528,9 @@
     .next-steps h3 {
       margin-top: 0;
       margin-bottom: 8px;
-      color: var(--accent);
+      color: var(--pacifica-orange);
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .next-steps ul {
@@ -566,10 +542,10 @@
 
     .bar-chart {
       display: flex;
-      height: 32px;
+      height: 16px;
       width: 100%;
-      background: #f3f4f6;
-      border-radius: 99px;
+      background: #f0f0f0;
+      border-radius: var(--radius-sm);
       overflow: hidden;
     }
 
@@ -585,15 +561,15 @@
     }
 
     .bar-segment.confident {
-      background: var(--success-color);
+      background: var(--status-mastery);
     }
 
     .bar-segment.okay {
-      background: var(--warning-color);
+      background: var(--status-developing);
     }
 
     .bar-segment.unsure {
-      background: var(--danger-color);
+      background: var(--status-concern);
     }
 
     .problem-list-view {
@@ -604,8 +580,8 @@
     .problem-item-view {
       border: 1px solid var(--border);
       padding: 24px;
-      border-radius: 8px;
-      background: #fff;
+      border-radius: var(--radius-md);
+      background: var(--card-bg);
     }
 
     .problem-header-view {
@@ -615,9 +591,10 @@
     }
 
     .problem-number {
-      font-weight: 700;
-      color: var(--primary);
+      font-weight: 800;
+      color: var(--pacifica-navy);
       font-size: 1.1rem;
+      letter-spacing: -0.02em;
     }
 
     .problem-feedback {
@@ -628,94 +605,107 @@
     }
 
     .feedback-confident {
-      background: #e8f5e9;
-      color: #2e7d32;
+      background: rgba(0, 145, 178, 0.1);
+      color: var(--robin-egg);
+      font-weight: 700;
     }
 
     .feedback-okay {
-      background: #fff3e0;
-      color: #ef6c00;
+      background: rgba(245, 190, 11, 0.1);
+      color: #d4a000;
+      font-weight: 700;
     }
 
     .feedback-unsure {
-      background: #ffebee;
-      color: #c62828;
+      background: rgba(229, 82, 4, 0.1);
+      color: var(--pacifica-orange);
+      font-weight: 700;
     }
 
     .problem-concept-tag {
       display: inline-block;
-      background: #f0f4f8;
-      color: var(--primary);
+      background: rgba(89, 125, 149, 0.1);
+      color: var(--slate);
       padding: 4px 10px;
       border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 700;
       margin-left: 12px;
       vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     /* Form Styles - table layout */
     .feedback-grid {
-      display: grid;
-      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      box-shadow: var(--shadow-subtle);
+      margin-bottom: 2rem;
     }
 
     .feedback-row {
       display: grid;
-      grid-template-columns: 1.6fr repeat(4, 1fr);
-      gap: 6px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-      scroll-margin: 120px 0 120px 0;
+      grid-template-columns: 1fr 280px;
+      gap: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 0;
+      align-items: start;
+    }
+
+    .feedback-row:first-child {
+      padding-top: 0;
     }
 
     .feedback-row + .feedback-row {
       margin-top: 0;
     }
 
-    .feedback-header {
-      background: var(--sidebar-bg);
+    .problem-content {
+      padding-top: 0.2rem;
+    }
+
+    .problem-topic {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--slate);
+      margin-bottom: 0.5rem;
       font-weight: 700;
-      color: var(--muted);
     }
 
-    .cell {
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .cell.option-cell {
-      justify-content: center;
-      border-left: 1px solid var(--border);
-      text-align: center;
-    }
-
-    .problem-cell {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 16px 18px;
-      gap: 6px;
-    }
-
-    .problem-cell .problem-title {
-      font-size: 1.1rem;
+    .problem-title {
+      font-size: 1.15rem;
       font-weight: 700;
-      color: var(--primary);
+      color: var(--pacifica-navy);
+      margin-bottom: 0.5rem;
       display: flex;
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
     }
 
+    .eval-scale {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 0.75rem 1rem;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      width: 100%;
+      gap: 0.5rem;
+    }
+
     .part-label {
       font-size: 1rem;
-      font-weight: 700;
-      color: var(--accent);
+      font-weight: 800;
+      color: var(--pacifica-orange);
+      font-family: var(--font-brand);
     }
 
     .problem-description {
@@ -787,32 +777,62 @@
       margin-top: 10px;
       resize: vertical;
       min-height: 70px;
-      padding: 10px 12px;
+      padding: 1rem;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: inherit;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-brand);
       font-size: 0.95rem;
-      background: #fdfdfd;
+      background: #fafafa;
+      color: var(--pacifica-navy);
+      outline: none;
+    }
+
+    .comment-box:focus {
+      border-color: var(--pacifica-navy);
+      background: white;
     }
 
     .comment-label {
-      font-weight: 600;
-      color: var(--primary);
+      font-weight: 700;
+      color: var(--pacifica-navy);
       display: block;
       margin-top: 12px;
       margin-bottom: 6px;
+      font-family: var(--font-brand);
     }
 
-    /* Bubble Rating Scale - Pacifica Brand Style */
-    .choice-pill {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9f9f9;
-      padding: 0.75rem 1.25rem;
-      border-radius: 50px; /* Full pill shape */
-      border: 1px solid var(--border);
-      width: 100%;
+    .reflection-toggle {
+      font-size: 0.85rem;
+      color: var(--pacifica-navy);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 0.75rem;
+      font-weight: 600;
+      border-bottom: 1px dotted var(--pacifica-navy);
+      font-family: var(--font-brand);
+    }
+
+    .reflection-toggle:hover {
+      color: var(--pacifica-orange);
+      border-bottom-color: var(--pacifica-orange);
+    }
+
+    .reflection-area {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .reflection-area.open {
+      display: block;
+    }
+
+    .notebook-hint {
+      font-size: 0.75rem;
+      color: var(--slate);
+      margin-top: 6px;
+      font-style: italic;
     }
 
     .bubble-opt {
@@ -821,11 +841,12 @@
       align-items: center;
       cursor: pointer;
       position: relative;
+      flex: 1;
     }
 
     .bubble-circle {
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       border: 2px solid var(--pacifica-warm-gray);
       background: white;
@@ -846,38 +867,40 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      opacity: 0;
-      position: absolute;
-      top: 36px;
-      white-space: nowrap;
+      opacity: 0.7;
+      text-align: center;
       transition: opacity 0.2s;
     }
 
-    .bubble-opt:hover .bubble-label { opacity: 1; }
+    .bubble-opt:hover .bubble-label {
+      opacity: 1;
+    }
+
     .bubble-opt:hover .bubble-circle {
       border-color: var(--pacifica-navy);
       color: var(--pacifica-navy);
     }
 
-    /* Active State */
-    .bubble-opt.selected .bubble-circle {
+    .bubble-opt.active .bubble-circle {
       color: white;
       border-color: transparent;
       transform: scale(1.1);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     }
 
-    /* Contextual Colors for Active State based on Palette */
-    .bubble-opt.selected[data-val="could_not_approach"] .bubble-circle {
+    .bubble-opt.active[data-val="1"] .bubble-circle {
       background-color: var(--status-concern);
     }
-    .bubble-opt.selected[data-val="unsure"] .bubble-circle {
+
+    .bubble-opt.active[data-val="2"] .bubble-circle {
       background-color: var(--status-developing);
     }
-    .bubble-opt.selected[data-val="okay"] .bubble-circle {
+
+    .bubble-opt.active[data-val="3"] .bubble-circle {
       background-color: var(--status-proficient);
     }
-    .bubble-opt.selected[data-val="confident"] .bubble-circle {
+
+    .bubble-opt.active[data-val="4"] .bubble-circle {
       background-color: var(--status-mastery);
     }
 
@@ -885,14 +908,17 @@
       margin-top: 28px;
       padding: 20px;
       border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fff;
+      border-radius: var(--radius-md);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-subtle);
     }
 
     .overall-title {
       margin: 0 0 8px;
       color: var(--primary);
       font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .rating-row {
@@ -904,25 +930,31 @@
     }
 
     .star-btn {
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: white;
+      border-radius: var(--radius-md);
       padding: 10px 12px;
       cursor: pointer;
       font-size: 1.1rem;
       min-width: 60px;
       text-align: center;
       transition: all 0.15s ease;
+      font-family: var(--font-brand);
+      font-weight: 600;
+    }
+
+    .star-btn:hover {
+      border-color: var(--pacifica-navy);
     }
 
     .star-btn.selected {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 6px 12px rgba(9, 47, 87, 0.12);
+      background: var(--pacifica-navy);
+      color: white;
+      border-color: var(--pacifica-navy);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     }
 
-    .choice-pill input {
+    .bubble-opt input {
       position: absolute;
       opacity: 0;
       pointer-events: none;
@@ -935,16 +967,16 @@
       border-radius: var(--radius-sm);
       font-size: 0.9rem;
       font-weight: 700;
-      font-family: var(--font-brand);
       cursor: pointer;
       transition: all 0.2s;
+      font-family: var(--font-brand);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     .btn-primary {
       background: var(--pacifica-navy);
-      color: #fff;
+      color: white;
     }
 
     .btn-primary:hover {
@@ -952,21 +984,21 @@
     }
 
     .btn-secondary {
-      background: transparent;
-      color: var(--slate);
+      background: none;
+      color: var(--text-secondary);
       border: 1px solid var(--border);
       font-weight: 600;
     }
 
     .btn-secondary:hover {
-      border-color: var(--pacifica-navy);
-      color: var(--pacifica-navy);
       background: #f7fafc;
+      color: var(--pacifica-navy);
+      border-color: var(--pacifica-navy);
     }
 
     .btn-large {
-      font-size: 0.9rem;
-      padding: 0.7rem 1.8rem;
+      font-size: 1rem;
+      padding: 0.8rem 2rem;
     }
 
     /* Loading */
@@ -1001,13 +1033,15 @@
 
     /* Error Banner */
     .error-banner {
-      background: #ffebee;
-      color: #c62828;
+      background: rgba(229, 82, 4, 0.1);
+      color: var(--pacifica-orange);
       padding: 12px;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       margin-top: 16px;
       font-size: 0.9rem;
+      font-weight: 600;
       display: none;
+      border: 1px solid var(--pacifica-orange);
     }
 
     /* Analysis Modal */
@@ -1027,12 +1061,12 @@
     }
 
     .modal-content {
-      background: #fff;
-      border-radius: 12px;
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
       width: min(900px, 100%);
       max-height: 80vh;
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 16px 40px rgba(9, 47, 87, 0.12);
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
@@ -1118,8 +1152,11 @@
 
     .btn-small {
       padding: 6px 12px;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       height: auto;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     .analysis-frame {
@@ -1137,6 +1174,33 @@
       font-size: 1.2rem;
       cursor: pointer;
       color: var(--muted);
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 768px) {
+      .feedback-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .eval-scale {
+        width: 100%;
+      }
+
+      .bubble-circle {
+        width: 36px;
+        height: 36px;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+      }
+
+      .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
     }
   </style>
 </head>
@@ -1788,103 +1852,86 @@
         row.className = 'feedback-row';
         row.id = `row-${p.id}`;
 
-        const problemCell = document.createElement('div');
-        problemCell.className = 'cell problem-cell';
-        problemCell.innerHTML = `
-            <div class="problem-title">
-              ${p.label}
-              ${p.partLabel ? `<span class="part-label">${p.partLabel}</span>` : ''}
-              ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
-            </div>
-            ${p.description ? `<div class="problem-description">${p.description}</div>` : ''}
-            <div class="solution-controls">
-              <button class="btn-reveal-answer" data-problem-id="${p.id}">Reveal Answer</button>
-              <button class="btn-show-solution" data-problem-id="${p.id}" data-problem-label="${p.label}">Show Solution</button>
-            </div>
-            <div class="answer-reveal" id="answer-${p.id}">
-              <strong>Answer:</strong> $x = 4$
-            </div>
+        // Problem content column
+        const problemContent = document.createElement('div');
+        problemContent.className = 'problem-content';
+        problemContent.innerHTML = `
+          ${p.concept ? `<div class="problem-topic">${p.concept}</div>` : ''}
+          <div class="problem-title">
+            ${p.label}
+            ${p.partLabel ? `<span class="part-label">${p.partLabel}</span>` : ''}
+          </div>
         `;
-        row.appendChild(problemCell);
 
-        const handleSelection = (value, labelEl, inputEl) => {
-          const preservedScroll = mainContent.scrollTop;
-          state.responses[p.id] = value;
-          row.querySelectorAll('.choice-pill').forEach(el => el.classList.remove('selected'));
-          labelEl.classList.add('selected');
-          if (document.activeElement !== inputEl) {
-            inputEl.focus({ preventScroll: true });
-          }
-          requestAnimationFrame(() => {
-            mainContent.scrollTop = preservedScroll;
-          });
+        // Add toggle button for comments
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'reflection-toggle';
+        toggleBtn.textContent = '+ Add analysis note';
+        toggleBtn.onclick = function() {
+          const area = this.nextElementSibling;
+          area.classList.toggle('open');
+          this.textContent = area.classList.contains('open') ? '− Close note' : '+ Add analysis note';
         };
 
-        // Create bubble rating scale container
-        const ratingCell = document.createElement('div');
-        ratingCell.className = 'cell option-cell';
-        ratingCell.style.gridColumn = 'span 4'; // Span all option columns
-
-        const ratingScale = document.createElement('div');
-        ratingScale.className = 'choice-pill'; // Reusing class name for the container
-
-        RESPONSE_OPTIONS.forEach((opt, index) => {
-          const bubbleDiv = document.createElement('div');
-          bubbleDiv.className = 'bubble-opt';
-          bubbleDiv.setAttribute('data-val', opt.value);
-
-          const bubbleNum = index + 1;
-          const labelMap = {
-            'could_not_approach': 'Confusion',
-            'unsure': 'Partial',
-            'okay': 'Proficient',
-            'confident': 'Mastery'
-          };
-
-          bubbleDiv.innerHTML = `
-            <div class="bubble-circle">${bubbleNum}</div>
-            <span class="bubble-label">${labelMap[opt.value]}</span>
-          `;
-
-          bubbleDiv.addEventListener('click', () => {
-            const preservedScroll = mainContent.scrollTop;
-            state.responses[p.id] = opt.value;
-            ratingScale.querySelectorAll('.bubble-opt').forEach(el => el.classList.remove('selected'));
-            bubbleDiv.classList.add('selected');
-            requestAnimationFrame(() => {
-              mainContent.scrollTop = preservedScroll;
-            });
-          });
-
-          ratingScale.appendChild(bubbleDiv);
-        });
-
-        ratingCell.appendChild(ratingScale);
-        row.appendChild(ratingCell);
-
-        grid.appendChild(row);
-
-        const commentWrapper = document.createElement('div');
-        commentWrapper.className = 'feedback-row';
-        const commentCell = document.createElement('div');
-        commentCell.className = 'cell problem-cell';
-        commentCell.style.gridColumn = '1 / -1';
-
-        const commentLabel = document.createElement('label');
-        commentLabel.className = 'comment-label';
-        commentLabel.textContent = 'Questions or comments for this problem (optional)';
+        const reflectionArea = document.createElement('div');
+        reflectionArea.className = 'reflection-area';
 
         const textarea = document.createElement('textarea');
         textarea.className = 'comment-box';
-        textarea.placeholder = 'Share where you got stuck or any thoughts on this problem...';
+        textarea.placeholder = 'I struggled specifically with...';
         textarea.oninput = (e) => {
           state.problemComments[p.id] = e.target.value;
         };
 
-        commentCell.appendChild(commentLabel);
-        commentCell.appendChild(textarea);
-        commentWrapper.appendChild(commentCell);
-        grid.appendChild(commentWrapper);
+        const hint = document.createElement('div');
+        hint.className = 'notebook-hint';
+        hint.textContent = 'Focus on the process where you got stuck.';
+
+        reflectionArea.appendChild(textarea);
+        reflectionArea.appendChild(hint);
+
+        problemContent.appendChild(toggleBtn);
+        problemContent.appendChild(reflectionArea);
+
+        // Rating scale column
+        const evalScale = document.createElement('div');
+        evalScale.className = 'eval-scale';
+
+        const handleSelection = (value, bubbleOpt) => {
+          state.responses[p.id] = value;
+          evalScale.querySelectorAll('.bubble-opt').forEach(el => el.classList.remove('active'));
+          bubbleOpt.classList.add('active');
+        };
+
+        RESPONSE_OPTIONS.forEach((opt, idx) => {
+          const bubbleOpt = document.createElement('div');
+          bubbleOpt.className = 'bubble-opt';
+          bubbleOpt.setAttribute('data-val', idx + 1);
+          bubbleOpt.onclick = () => handleSelection(opt.value, bubbleOpt);
+
+          const circle = document.createElement('div');
+          circle.className = 'bubble-circle';
+          circle.textContent = idx + 1;
+
+          const label = document.createElement('span');
+          label.className = 'bubble-label';
+          label.textContent = opt.label;
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `p-${p.id}`;
+          input.value = opt.value;
+
+          bubbleOpt.appendChild(circle);
+          bubbleOpt.appendChild(label);
+          bubbleOpt.appendChild(input);
+          evalScale.appendChild(bubbleOpt);
+        });
+
+        row.appendChild(problemContent);
+        row.appendChild(evalScale);
+        grid.appendChild(row);
       });
 
       container.appendChild(grid);
