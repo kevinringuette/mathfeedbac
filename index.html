@@ -1363,6 +1363,7 @@
       PROBLEM_DESCRIPTION: ['Question Text', 'Prompt', 'Description'],
       PART_LABEL: ['Part Label'],
       MATH_CONCEPT: ['Math Concept', 'Concept'],
+      FEEDBACK_PULL: ['feedback pull', 'Feedback Pull', 'Feedback pull'],
       PROBLEM_HOMEWORK_LINK: ['Homework'], // Link from Problems table to Homework Name table
       FEEDBACK_EMAIL: 'Email Address',
       FEEDBACK_PROBLEM_LINK: 'Homework Problem',
@@ -1511,6 +1512,12 @@
       const assignmentMeta = new Map(); // name -> { unit, lesson }
 
       records.forEach(r => {
+        const feedbackPull = extractFirstAvailable(r.fields, FIELD_NAMES.FEEDBACK_PULL);
+        const isFeedbackPullEnabled = feedbackPull === true
+          || feedbackPull === 1
+          || (typeof feedbackPull === 'string' && ['true', 'yes', 'checked', '1'].includes(feedbackPull.trim().toLowerCase()));
+        if (!isFeedbackPullEnabled) return;
+
         const assign = extractFirstAvailable(r.fields, FIELD_NAMES.ASSIGNMENT_NAME);
         if (!assign) return;
 
