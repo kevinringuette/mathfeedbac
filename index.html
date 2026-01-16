@@ -725,6 +725,63 @@
       line-height: 1.4;
     }
 
+    .solution-controls {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-reveal-answer {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: #f0f9ff;
+      color: var(--pacifica-navy);
+      border: 1px solid var(--pacifica-sky);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-reveal-answer:hover {
+      background: var(--pacifica-sky);
+      border-color: #a0c5de;
+    }
+
+    .btn-show-solution {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: var(--pacifica-sky);
+      color: var(--pacifica-navy);
+      border: 1px solid #b8d4e8;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-show-solution:hover {
+      background: #c8e1f0;
+      border-color: #a0c5de;
+    }
+
+    .answer-reveal {
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 6px;
+      color: #166534;
+      font-weight: 500;
+      display: none;
+    }
+
+    .answer-reveal.visible {
+      display: block;
+    }
+
     .comment-box {
       width: 100%;
       margin-top: 10px;
@@ -1253,6 +1310,18 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="solution-modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="solution-modal-title">
+      <div class="modal-header">
+        <h3 id="solution-modal-title">Solution</h3>
+        <button class="modal-close" id="solution-modal-close" aria-label="Close solution">✕</button>
+      </div>
+      <div class="modal-body" id="solution-modal-body">
+        <!-- Solution content will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
   <!-- Cross-origin safe webhook delivery -->
   <form id="analysis-form" method="POST" target="analysis-frame" style="display: none;" enctype="multipart/form-data" accept-charset="UTF-8">
     <textarea name="payload" id="analysis-payload" hidden></textarea>
@@ -1325,6 +1394,7 @@
       currentLesson: null, // For AI feedback page
       responses: {}, // For the form
       problemComments: {},
+      solutionViewed: {}, // Track which problems had solution viewed
       overallComment: '',
       overallRating: null
     };
@@ -1704,6 +1774,7 @@
       container.innerHTML = '';
       state.responses = {};
       state.problemComments = {};
+      state.solutionViewed = {};
       state.overallComment = '';
       state.overallRating = null;
 
@@ -1726,6 +1797,13 @@
               ${p.concept ? `<span class="problem-concept-tag">${p.concept}</span>` : ''}
             </div>
             ${p.description ? `<div class="problem-description">${p.description}</div>` : ''}
+            <div class="solution-controls">
+              <button class="btn-reveal-answer" data-problem-id="${p.id}">Reveal Answer</button>
+              <button class="btn-show-solution" data-problem-id="${p.id}" data-problem-label="${p.label}">Show Solution</button>
+            </div>
+            <div class="answer-reveal" id="answer-${p.id}">
+              <strong>Answer:</strong> $x = 4$
+            </div>
         `;
         row.appendChild(problemCell);
 
@@ -1816,7 +1894,7 @@
       overallSection.innerHTML = `
         <h3 class="overall-title">Overall reflection</h3>
         <label class="comment-label" for="overall-comment">How did this homework feel?</label>
-        <textarea id="overall-comment" class="comment-box" placeholder="Share anything that stood out..." required></textarea>
+        <textarea id="overall-comment" class="comment-box" placeholder="Share anything that stood out..."></textarea>
         <div class="comment-label" style="margin-bottom: 2px;">Overall confidence (0-5 stars)</div>
         <div id="rating-row" class="rating-row"></div>
       `;
@@ -1843,6 +1921,29 @@
 
       renderMath(grid);
 
+      // Add reveal answer button event listeners
+      grid.querySelectorAll('.btn-reveal-answer').forEach(btn => {
+        btn.onclick = () => {
+          const problemId = btn.dataset.problemId;
+          const answerDiv = document.getElementById(`answer-${problemId}`);
+          answerDiv.classList.add('visible');
+          renderMath(answerDiv);
+          btn.disabled = true;
+          btn.textContent = 'Answer Revealed';
+          btn.style.opacity = '0.6';
+        };
+      });
+
+      // Add show solution button event listeners
+      grid.querySelectorAll('.btn-show-solution').forEach(btn => {
+        btn.onclick = () => {
+          const problemId = btn.dataset.problemId;
+          const problemLabel = btn.dataset.problemLabel;
+          state.solutionViewed[problemId] = true;
+          openSolutionModal(problemLabel);
+        };
+      });
+
       document.getElementById('btn-cancel-upload').onclick = () => switchView('empty');
 
       const form = document.getElementById('feedback-form');
@@ -1860,11 +1961,6 @@
         return;
       }
 
-      if (!state.overallComment.trim()) {
-        alert('Please add your overall comment.');
-        return;
-      }
-
       if (state.overallRating === null) {
         alert('Please add your overall confidence rating.');
         return;
@@ -1878,7 +1974,12 @@
         const records = problems.map(p => {
           const feedbackLabel = RESPONSE_OPTIONS.find(o => o.value === state.responses[p.id]).label;
           const commentText = (state.problemComments[p.id] || '').trim();
-          const feedbackText = commentText ? `${feedbackLabel} — ${commentText}` : feedbackLabel;
+          let feedbackText = commentText ? `${feedbackLabel} — ${commentText}` : feedbackLabel;
+
+          // Append solution viewed indicator if applicable
+          if (state.solutionViewed[p.id]) {
+            feedbackText += ' (Showed Solution)';
+          }
 
           return {
             fields: {
@@ -1893,10 +1994,11 @@
         });
 
         // Overall reflection record (no Homework Problem link)
+        const overallCommentText = state.overallComment.trim();
         records.push({
           fields: {
             [FIELD_NAMES.FEEDBACK_EMAIL]: state.currentUser.email,
-            [resolvedFields.feedbackComment]: state.overallComment.trim(),
+            ...(overallCommentText && resolvedFields.feedbackComment ? { [resolvedFields.feedbackComment]: overallCommentText } : {}),
             [resolvedFields.feedbackRating]: state.overallRating,
             [resolvedFields.feedbackText]: 'Overall reflection',
             ...(resolvedFields.feedbackStudentLink ? { [resolvedFields.feedbackStudentLink]: [state.currentUser.id] } : {}),
@@ -2407,6 +2509,74 @@
         });
       }
     }
+
+    function openSolutionModal(problemLabel) {
+      const modal = document.getElementById('solution-modal');
+      const modalTitle = document.getElementById('solution-modal-title');
+      const modalBody = document.getElementById('solution-modal-body');
+
+      modalTitle.textContent = `Solution: ${problemLabel}`;
+
+      // Sample MathType/LaTeX content
+      modalBody.innerHTML = `
+        <div style="line-height: 1.8;">
+          <p><strong>Step 1:</strong> Start by isolating the variable term.</p>
+          <p style="margin-left: 20px;">$$2x + 5 = 13$$</p>
+
+          <p><strong>Step 2:</strong> Subtract 5 from both sides.</p>
+          <p style="margin-left: 20px;">$$2x + 5 - 5 = 13 - 5$$</p>
+          <p style="margin-left: 20px;">$$2x = 8$$</p>
+
+          <p><strong>Step 3:</strong> Divide both sides by 2.</p>
+          <p style="margin-left: 20px;">$$\\frac{2x}{2} = \\frac{8}{2}$$</p>
+          <p style="margin-left: 20px;">$$x = 4$$</p>
+
+          <p><strong>Step 4:</strong> Verify the solution by substituting back.</p>
+          <p style="margin-left: 20px;">$$2(4) + 5 = 8 + 5 = 13$$ ✓</p>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+
+          <p><strong>Additional Example:</strong> Quadratic formula</p>
+          <p style="margin-left: 20px;">For equation $ax^2 + bx + c = 0$, the solution is:</p>
+          <p style="margin-left: 20px;">$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$</p>
+
+          <p><strong>Example with fractions:</strong></p>
+          <p style="margin-left: 20px;">$$\\frac{3}{4}x - \\frac{1}{2} = \\frac{5}{8}$$</p>
+          <p style="margin-left: 20px;">Multiply all terms by 8: $6x - 4 = 5$</p>
+          <p style="margin-left: 20px;">Therefore: $x = \\frac{3}{2}$</p>
+        </div>
+      `;
+
+      // Render the math in the modal
+      renderMath(modalBody);
+
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSolutionModal() {
+      const modal = document.getElementById('solution-modal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Set up solution modal close handlers
+    document.addEventListener('DOMContentLoaded', () => {
+      const solutionModal = document.getElementById('solution-modal');
+      const solutionModalClose = document.getElementById('solution-modal-close');
+
+      if (solutionModalClose) {
+        solutionModalClose.addEventListener('click', closeSolutionModal);
+      }
+
+      if (solutionModal) {
+        solutionModal.addEventListener('click', (event) => {
+          if (event.target === solutionModal) {
+            closeSolutionModal();
+          }
+        });
+      }
+    });
 
     async function airtableFetch(table, params = {}) {
       let allRecords = [];
